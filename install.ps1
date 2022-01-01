@@ -15,7 +15,7 @@ function GetActiveProfiles() {
     return $list | Where-Object {-not $_.hidden} | Where-Object {($null -eq $_.source) -or -not ($settings.disabledProfileSources -contains $_.source)}
 }
 
-function ConvertToIcon([Parameter(Mandatory = $true)][string]$File, [Parameter(Mandatory = $true)][string]$OutputFile) {
+function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(Mandatory = $true)][string]$outputFile) {
     Add-Type -AssemblyName System.Drawing
 
     $resolvedFile = $ExecutionContext.SessionState.Path.GetResolvedPSPathFromPSPath($file)
