@@ -1,4 +1,5 @@
 Copyright (C) 2022 Liu Baihao.
+This software is licensed under MIT licence.
 
 This software can automatically generate and open the right-click menu of Windows Terminal here.
 
@@ -14,11 +15,10 @@ Currently supported languages:
 This project is based on lextm's "windowsterminal-shell" project (https://github.com/lextm/windowsterminal-shell).
 Special thanks to lextm.
 
-This software is licensed under MIT licence.
-
 -----------------------------------------------------------------------------------------------------------
 
 版权所有（C）2022 刘柏豪。
+此软件遵循麻省理工学院许可证（MIT）。
 
 本软件可在此自动生成打开Windows Terminal的右键菜单。
 
@@ -33,5 +33,3 @@ This software is licensed under MIT licence.
 
 此项目基于lextm的“windowsterminal-shell”项目：https://github.com/lextm/windowsterminal-shell
 特别感谢lextm。
-
-此软件遵循麻省理工学院许可证（MIT）。
