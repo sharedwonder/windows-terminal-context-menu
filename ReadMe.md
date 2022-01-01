@@ -59,7 +59,7 @@ Special thanks to lextm.
 | | Windows Terminal Context Menu | windowsterminal shell |
 | :- | :-: | :-: |
 | 支持多种语言 | 是 | 否 |
-| 支持Windows Terminal Preview | 否 | 是 |
+| 支持Windows Terminal 预览版 | 否 | 是 |
 | 管理员权限 | 不需要 | 需要 |
 | 与多个Windows Terminal版本兼容 | 未知 | 是 |
 | 多种样式 | 无 | 有 |
