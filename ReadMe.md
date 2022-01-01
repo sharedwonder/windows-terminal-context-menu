@@ -1,5 +1,5 @@
 #Windows Terminal Context Menu
-#This software is licensed under MIT licence.
+##This software is licensed under MIT licence.
 
 ##1.Introduce
 
@@ -30,8 +30,8 @@ Compatible with multiple Windows Terminal versions                Unknown       
 
 -----------------------------------------------------------------------------------------------------------
 
-#Windows Terminal上下文菜单
-#此软件遵循麻省理工学院许可证（MIT）。
+Windows Terminal上下文菜单
+##此软件遵循麻省理工学院许可证（MIT）。
 
 ##1.介绍
 
