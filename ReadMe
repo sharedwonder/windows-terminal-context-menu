@@ -12,8 +12,15 @@ Currently supported languages:
     English (en-US)
     Chinese (zh-CN)
 
-This project is based on lextm's "windowsterminal-shell" project (https://github.com/lextm/windowsterminal-shell).
+This project is based on lextm's "windowsterminal shell" project (https://github.com/lextm/windowsterminal-shell).
 Special thanks to lextm.
+
+Compare with "windowsterminal shell":
+                                                      Windows Terminal Context Menu         windowsterminal shell
+Support multiple languages                                        Yes                               No
+Support Windows Terminal preview                                  No                                Yes
+Administrator privileges                                          Not required                      Required
+Compatible with multiple Windows Terminal versions                Unknown                           Yes
 
 -----------------------------------------------------------------------------------------------------------
 
@@ -31,5 +38,12 @@ Special thanks to lextm.
     英语（en-US）
     中文（zh-CN）
 
-此项目基于lextm的“windowsterminal-shell”项目：https://github.com/lextm/windowsterminal-shell
+此项目基于lextm的“windowsterminal shell”项目：https://github.com/lextm/windowsterminal-shell
 特别感谢lextm。
+
+与"windowsterminal shell"比较：
+                                                      Windows-Terminal-Context-Menu         windowsterminal-shell
+支持多种语言                                                       是                                   否
+支持Windows Terminal Preview                                      否                                   是
+管理员权限                                                        不需要                               需要
+与多个Windows Terminal版本兼容                                     未知                                 是
