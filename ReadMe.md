@@ -22,7 +22,7 @@ This project is based on lextm's "windowsterminal shell" project (https://github
 Special thanks to lextm.
 
 ## 4.Compare with "windowsterminal shell":
-                                                       Windows Terminal Context Menu         windowsterminal shell
+###                                                        Windows Terminal Context Menu         windowsterminal shell
 ### Support multiple languages                                        Yes                               No
 ### Support Windows Terminal preview                                  No                                Yes
 ### Administrator privileges                                          Not required                      Required
@@ -54,8 +54,8 @@ Special thanks to lextm.
 特别感谢lextm。
 
 ## 4.与"windowsterminal shell"比较：
-                                                      Windows-Terminal-Context-Menu         windowsterminal-shell
-支持多种语言                                                       是                                   否
-支持Windows Terminal Preview                                      否                                   是
-管理员权限                                                        不需要                               需要
-与多个Windows Terminal版本兼容                                     未知                                 是
+###                                                       Windows-Terminal-Context-Menu         windowsterminal-shell
+### 支持多种语言                                                       是                                   否
+### 支持Windows Terminal Preview                                      否                                   是
+### 管理员权限                                                        不需要                               需要
+### 与多个Windows Terminal版本兼容                                     未知                                 是
