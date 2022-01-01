@@ -153,12 +153,10 @@ function GetTranslations() {
             if ($context[$index] -match "\[.+\]") {
                 if ($context[$index].Equals("[language]".Replace("language", $language))) {
                     $flag = $true
-                }
-                elseif ($flag) {
+                } elseif ($flag) {
                     return
                 }
-            }
-            elseif ($flag) {
+            } elseif ($flag) {
                 ConvertFrom-StringData -StringData $context[$index]
             }
         }
@@ -168,16 +166,12 @@ function GetTranslations() {
     } while (-not $flag)
 }
 
-function Main() {
-    $folder = GetProgramFilesFolder
-    $icon = "$PSScriptRoot\icon.ico"
-    $translations = GetTranslations
-    $profiles = GetActiveProfiles
-    CreateMenus $icon $translations
-    foreach ($profile in $profiles) {
-        Write-Output $profile
-        AddProfileMenuItem $profile $folder $icon
-    }
+$folder = GetProgramFilesFolder
+$icon = "$PSScriptRoot\icon.ico"
+$translations = GetTranslations
+$profiles = GetActiveProfiles
+CreateMenus $icon $translations
+foreach ($profile in $profiles) {
+    Write-Output $profile
+    AddProfileMenuItem $profile $folder $icon
 }
-
-Main
