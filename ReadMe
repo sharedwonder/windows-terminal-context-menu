@@ -22,7 +22,7 @@ This software is licensed under MIT licence.
 
 本软件可在此自动生成打开Windows Terminal的右键菜单。
 
-注意：这些脚本需要新的PowerShell (https://github.com/PowerShell/PowerShell)。
+注意：这些脚本需要新的PowerShell (https://github.com/PowerShell/PowerShell)
 要安装：请运行install.ps1
 要卸载：请运行uninstall.ps1
 
@@ -31,7 +31,7 @@ This software is licensed under MIT licence.
     英语（en-US）
     中文（zh-CN）
 
-此项目基于lextm的“windowsterminal-shell”项目 (https://github.com/lextm/windowsterminal-shell)。
+此项目基于lextm的“windowsterminal-shell”项目 (https://github.com/lextm/windowsterminal-shell)
 特别感谢lextm。
 
 此软件遵循麻省理工学院许可证（MIT）。
