@@ -25,9 +25,5 @@ function RemoveIconsCache() {
     }
 }
 
-function Main() {
-    RemoveMenus
-    RemoveIconsCache
-}
-
-Main
+RemoveMenus
+RemoveIconsCache
