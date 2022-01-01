@@ -1,7 +1,7 @@
-#Windows Terminal Context Menu
-##This software is licensed under MIT licence.
+# Windows Terminal Context Menu
+## This software is licensed under MIT licence.
 
-##1.Introduce
+## 1.Introduce
 
 This software can automatically generate and open the right-click menu of Windows Terminal here.
 
@@ -10,18 +10,18 @@ Currently supported languages:
     English (en-US)
     Chinese (zh-CN)
 
-##2.Install/Uninstall
+## 2.Install/Uninstall
 
 Note: These scripts require new PowerShell (https://github.com/PowerShell/PowerShell).
 To install: run install.ps1
 To uninstall: run uninstall.ps1
 
-##3.Thanks
+## 3.Thanks
 
 This project is based on lextm's "windowsterminal shell" project (https://github.com/lextm/windowsterminal-shell).
 Special thanks to lextm.
 
-##4.Compare with "windowsterminal shell":
+## 4.Compare with "windowsterminal shell":
                                                        Windows Terminal Context Menu         windowsterminal shell
 Support multiple languages                                        Yes                               No
 Support Windows Terminal preview                                  No                                Yes
@@ -31,9 +31,9 @@ Compatible with multiple Windows Terminal versions                Unknown       
 -----------------------------------------------------------------------------------------------------------
 
 Windows Terminal上下文菜单
-##此软件遵循麻省理工学院许可证（MIT）。
+## 此软件遵循麻省理工学院许可证（MIT）。
 
-##1.介绍
+## 1.介绍
 
 本软件可在此自动生成打开Windows Terminal的右键菜单。
 
@@ -42,18 +42,18 @@ Windows Terminal上下文菜单
     英语（en-US）
     中文（zh-CN）
 
-##2.安装/卸载
+## 2.安装/卸载
 
 注意：这些脚本需要新的PowerShell：https://github.com/PowerShell/PowerShell
 要安装：请运行install.ps1
 要卸载：请运行uninstall.ps1
 
-##3.感谢
+## 3.感谢
 
 此项目基于lextm的“windowsterminal shell”项目：https://github.com/lextm/windowsterminal-shell
 特别感谢lextm。
 
-##4.与"windowsterminal shell"比较：
+## 4.与"windowsterminal shell"比较：
                                                       Windows-Terminal-Context-Menu         windowsterminal-shell
 支持多种语言                                                       是                                   否
 支持Windows Terminal Preview                                      否                                   是
