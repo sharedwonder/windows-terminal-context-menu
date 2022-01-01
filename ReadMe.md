@@ -23,10 +23,10 @@ Special thanks to lextm.
 
 ## 4.Compare with "windowsterminal shell":
                                                        Windows Terminal Context Menu         windowsterminal shell
-Support multiple languages                                        Yes                               No
-Support Windows Terminal preview                                  No                                Yes
-Administrator privileges                                          Not required                      Required
-Compatible with multiple Windows Terminal versions                Unknown                           Yes
+### Support multiple languages                                        Yes                               No
+### Support Windows Terminal preview                                  No                                Yes
+### Administrator privileges                                          Not required                      Required
+### Compatible with multiple Windows Terminal versions                Unknown                           Yes
 
 -----------------------------------------------------------------------------------------------------------
 
