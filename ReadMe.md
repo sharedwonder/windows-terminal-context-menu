@@ -1,7 +1,7 @@
 # Windows Terminal Context Menu
 This software is licensed under MIT licence.
 
-## 1.Introduce
+## 1.Introducing
 
 This software can automatically generate and open the right-click menu of Windows Terminal here.
 
@@ -29,8 +29,9 @@ Special thanks to lextm.
 | Administrator privileges | Not required | Required |
 | Compatible with multiple Windows Terminal versions | Unknown | Yes |
 | Multiple styles | Not have | Have |
+| Check environments | No | Yes |
 
------------------------------------------------------------------------------------------------------------
+---
 
 # Windows Terminal上下文菜单
 此软件遵循麻省理工学院许可证（MIT）。
@@ -47,15 +48,15 @@ Special thanks to lextm.
 ## 2.安装/卸载
 
 注意：这些脚本需要新的[PowerShell](https://github.com/PowerShell/PowerShell)。
-- 要安装：请运行install.ps1
-- 要卸载：请运行uninstall.ps1
+- 安装：运行install.ps1
+- 卸载：运行uninstall.ps1
 
 ## 3.感谢
 
 此项目基于lextm的[“windowsterminal shell”项目](https://github.com/lextm/windowsterminal-shell)。
 特别感谢lextm。
 
-## 4.与"windowsterminal shell"比较：
+## 4.与"windowsterminal shell"比较
 | | Windows Terminal Context Menu | windowsterminal shell |
 | :- | :-: | :-: |
 | 支持多种语言 | 是 | 否 |
@@ -63,3 +64,4 @@ Special thanks to lextm.
 | 管理员权限 | 不需要 | 需要 |
 | 与多个Windows Terminal版本兼容 | 未知 | 是 |
 | 多种样式 | 无 | 有 |
+| 检查环境 | 否 | 是 |
