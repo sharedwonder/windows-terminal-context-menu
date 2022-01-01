@@ -40,7 +40,7 @@ Special thanks to lextm.
 本软件可在此自动生成在此处打开Windows Terminal的右键菜单。
 
 脚本可以自动识别系统语言。
-- 当前支持的语言：
+### 当前支持的语言：
 - 英语（en-US）
 - 中文（zh-CN）
 
