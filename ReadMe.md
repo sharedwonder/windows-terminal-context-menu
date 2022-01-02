@@ -8,8 +8,7 @@ This software is licensed under MIT licence.
 This software can automatically generate and open the right-click menu of Windows Terminal here.
 
 The script can automatically recognize the system language.
-### Currently supported languages:
-- See [translations file](./lang.ini).
+- Currently supported languages: see [translations file](./lang.ini).
 
 ## 2.Install/Uninstall
 
@@ -49,8 +48,7 @@ Special thanks to lextm.
 本软件可在此自动生成在此处打开Windows Terminal的右键菜单。
 
 脚本可以自动识别系统语言。
-### 当前支持的语言：
-- 请查看[翻译文件](./lang.ini)。
+- 当前支持的语言：请查看[翻译文件](./lang.ini)。
 
 ## 2.安装/卸载
 
