@@ -5,7 +5,6 @@ function GetInstallationInfo() {
     Write-Host "Looking for Windows Terminal..."
 
     $edition = 0
-    $appx = $null
 
     # release edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminal))) {
@@ -33,25 +32,31 @@ function GetInstallationInfo() {
 
     # Not found.
     if ($edition -eq 0) {
-        Write-Error "Not installed Windows Terminal."
+        Write-Error "Not installed Windows Terminal, please install Windows Terminal first."
         exit 1
     }
 
-    return ($edition, $folder)
+    Write-Host "Windows Terminal installtion folder:" $folder
+
+    return $edition, $folder
 }
 
 # Get active profiles of Windows Terminal.
 function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
-    $settings = $null
     if ($edition -eq 1) {
-        # Read and parse settings of Windows Terminal.
-        $settings = Get-Content "$Env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" |
-            Out-String | ConvertFrom-Json
+        $file = "$Env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
     } else {
-        # Read and parse settings of Windows Terminal Preview.
-        $settings = Get-Content "$Env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json" |
-            Out-String | ConvertFrom-Json
+        $file = "$Env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
     }
+
+    if (-not (Test-Path $file)) {
+        Write-Error "The settings file didn't create, please run Windows Terminal first."
+        exit 1
+    }
+
+    # Read and parse settings of Windows Terminal.
+    $settings = Get-Content $file | Out-String | ConvertFrom-Json
 
     # Compatible with older Windows Terminal.
     if ($settings.profiles.PSObject.Properties.name -match "list") {
@@ -93,16 +98,16 @@ function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(M
 
     $iconWriter = New-Object System.IO.BinaryWriter($output)
 
-    $iconWriter.Write([char]0)
-    $iconWriter.Write([char]0)
-    $iconWriter.Write([int16]1)
-    $iconWriter.Write([int16]1)
-    $iconWriter.Write([char]$width)
-    $iconWriter.Write([char]$height)
-    $iconWriter.Write([char]0)
-    $iconWriter.Write([char]0)
-    $iconWriter.Write([int16]0)
-    $iconWriter.Write([int16]32)
+    $iconWriter.Write([byte]0)
+    $iconWriter.Write([byte]0)
+    $iconWriter.Write([short]1)
+    $iconWriter.Write([short]1)
+    $iconWriter.Write([byte]$width)
+    $iconWriter.Write([byte]$height)
+    $iconWriter.Write([byte]0)
+    $iconWriter.Write([byte]0)
+    $iconWriter.Write([short]0)
+    $iconWriter.Write([short]32)
     $iconWriter.Write([int]$memoryStream.Length)
     $iconWriter.Write([int]22)
     $iconWriter.Write($memoryStream.ToArray())
@@ -116,8 +121,8 @@ function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(M
 }
 
 # Get the icon of a profile.
-function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)][String]$folder,
-                        [Parameter(Mandatory = $true)][String]$defaultIcon) {
+function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)][string]$folder,
+                        [Parameter(Mandatory = $true)][string]$defaultIcon) {
     if ($null -ne $profile.icon) {
         # For profiles with a user-defined icon.
         return $profile.icon
@@ -132,12 +137,7 @@ function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Manda
         $profilePng = "$folder\ProfileIcons\$guid.scale-200.png"
         if (Test-Path $profilePng) {
             # For automatically generated profiles.
-            $cache = "$Env:LocalAppData\WindowsTerminalIconsCache"
-            $icon = "$cache\$guid.ico"
-
-            if (-not (Test-Path $cache)) {
-                New-Item -Path $cache -ItemType Directory
-            }
+            $icon = "$storage\$guid.ico"
 
             ConvertToIcon $profilePng $icon
             return $icon
@@ -150,14 +150,16 @@ function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Manda
 
 # Add menu subitems for a profile.
 function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)]$index,
-                            [Parameter(Mandatory = $true)][String]$folder, [Parameter(Mandatory = $true)][String]$defaultIcon) {
-    Write-Host "Adding menu subitems for the profile" $profile.guid ":" $profile.name
+                            [Parameter(Mandatory = $true)][string]$folder, [Parameter(Mandatory = $true)][string]$defaultIcon,
+                            [Parameter(Mandatory = $true)][string]$launcher) {
+    Write-Host "Adding menu subitems for the profile" $profile.guid ":" $profile.name "..."
+
     $guid = $profile.guid
     $name = $profile.name
     $icon = GetProfileIcon $profile $folder $defaultIcon
 
     $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenu\shell\$index-$guid"
-    $command = "wscript `"$PSScriptRoot\launch.vbs`" `"%V\.`" $guid"
+    $command = "wscript `"$launcher`" `"%V\.`" $guid"
 
     New-Item -Path $rootKey -Force | Out-Null
     New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
@@ -194,7 +196,11 @@ function AddMenu([Parameter(Mandatory = $true)][String]$rootKey, [Parameter(Mand
 }
 
 # Create all context menus that open Windows Terminal.
-function CreateMenus([Parameter(Mandatory = $true)][String]$icon, [Parameter(Mandatory = $true)]$translations) {
+function CreateMenus([Parameter(Mandatory = $true)][string]$storage,
+                     [Parameter(Mandatory = $true)][string]$icon, [Parameter(Mandatory = $true)]$translations) {
+    Copy-Item $icon "$storage\WindowsTerminal.ico"
+    $icon = "$storage\WindowsTerminal.ico"
+
     AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenu" $icon $translations $false
     AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenuElevated" $icon $translations $true
     AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalMenu" $icon $translations $false
@@ -242,12 +248,18 @@ Write-Host "Installing Windows Terminal Context Menu..."
 $info = GetInstallationInfo
 $edition = $info[0]
 $folder = $info[1]
-Write-Host "Windows Terminal installtion folder:" $folder
 $profiles = GetActiveProfiles $edition
 $icon = "$PSScriptRoot\icon.ico"
-CreateMenus $icon $translations
+
+$storage = "$Env:LocalAppData\WindowsTerminalMenuContext"
+if (-not (Test-Path $storage)) {
+    New-Item -Path $storage -ItemType Directory | Out-Null
+}
+
+CreateMenus $storage $icon $translations
+Copy-Item "$PSScriptRoot\launch.vbs" "$storage\launch.vbs"
 for ($index = 0; $index -lt $profiles.Count; ++ $index) {
-    AddProfileMenuItem $profiles[$index] $index $folder $icon
+    AddProfileMenuItem $profiles[$index] $index $folder $icon "$storage\launch.vbs"
 }
 Write-Host "Installed successfully."
 exit 0
