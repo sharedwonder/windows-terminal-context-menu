@@ -31,7 +31,6 @@ Special thanks to lextm.
 | Check environments | Yes | Yes |
 | Installation message | Have | Have |
 | Administrator privileges | Not required | Required |
-| Whether to Require to retain this folder files after installation | Required (retain [launch.vbs](./launch.vbs)) | Not required |
 | Multiple styles | Not have | Have |
 | Sort menus in the order of settings | Yes | No |
 
@@ -71,7 +70,6 @@ Special thanks to lextm.
 | 检查环境 | 是 | 是 |
 | 安装信息 | 有 | 有 |
 | 管理员权限 | 不需要 | 需要 |
-| 安装后是否需要保留此文件夹的文件 | 需要（保留[launch.vbs](./launch.vbs)） | 不需要 |
 | 多种样式 | 无 | 有 |
 | 按设置的顺序排序菜单 | 是 | 否 |
 
