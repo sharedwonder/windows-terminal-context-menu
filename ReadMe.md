@@ -52,7 +52,7 @@ Special thanks to lextm.
 
 ## 2.安装/卸载
 
-注意：这些脚本需要[PowerShell](https://github.com/PowerShell/PowerShell) （版本至少为5，一般已内置）。
+注意：这些脚本需要[PowerShell](https://github.com/PowerShell/PowerShell) （版本至少为5，通常是内置的）。
 - 安装：运行install.ps1
 - 卸载：运行uninstall.ps1
 
