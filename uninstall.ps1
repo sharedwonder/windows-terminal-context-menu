@@ -7,7 +7,7 @@ function RemoveKey([Parameter(Mandatory = $true)]$key) {
 
 # Remove all context menus that open Windows Terminal.
 function RemoveMenus() {
-    Write-Host "Removing all context menus that open Windows Terminal..."
+    Write-Host $translations.RemovingMenus
 
     RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenu"
     RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenuElevated"
@@ -24,7 +24,7 @@ function RemoveMenus() {
 
 # Remove the storage this software folder
 function RemoveStorage() {
-    Write-Host "Removing the storage this software folder..."
+    Write-Host $translations.RemovingStorage
 
     $storage = "$Env:LocalAppData\WindowsTerminalMenuContext"
     if (Test-Path $storage) {
@@ -32,7 +32,41 @@ function RemoveStorage() {
     }
 }
 
+# Get translations.
+function GetTranslations() {
+    $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Get file translations.
+    $context -replace("#.*", "") # Delete comments.
+    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get system language.
+    $flag = $false # Use to determine if translations corresponding to the system language has been found.
+
+    # Parse file contents.
+    do {
+        for ($index = 1; $index -lt $context.Count; ++ $index) {
+            if ($context[$index] -match "^\[.+\]") {
+                if ($context[$index].Equals("[language]".Replace("language", $language))) {
+                    $flag = $true
+                } elseif ($flag) {
+                    return
+                }
+            } elseif ($flag -and ($context[$index] -match "^\w+=[\s\S]+")) {
+                # PowerShell will automatically store and return the results.
+                ConvertFrom-StringData -StringData $context[$index]
+            }
+        }
+        # There aren't any translations corresponding to the system language, use default language: English (US).
+        if (-not $flag) {
+            Write-Warning "There aren't any translations corresponding to the system language, use default language: English (US)."
+            $language = "en-US"
+        }
+    } while (-not $flag)
+}
+
+[System.Text.Encoding]::GetEncoding(65001) | Out-Null # Set the encoding to UTF-8.
+$translations = GetTranslations
+
+Write-Host $translations.UninstallingWindowsTerminalContextMenu
+
 RemoveMenus
 RemoveStorage
-Write-Host "Uninstalled successfully."
+Write-Host $translations.UninstalledSuccessfully
 exit 0
