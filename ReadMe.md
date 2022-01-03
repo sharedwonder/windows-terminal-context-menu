@@ -12,7 +12,7 @@ The script can automatically recognize the system language.
 
 ## 2.Install/Uninstall
 
-Note: These scripts require [PowerShell](https://github.com/PowerShell/PowerShell) (version at least 5, generally built-in).
+Note: These scripts require new [PowerShell](https://github.com/PowerShell/PowerShell) (version at least 6).
 - To install: run install.ps1
 - To uninstall: run uninstall.ps1
 
@@ -51,7 +51,7 @@ Special thanks to lextm.
 
 ## 2.安装/卸载
 
-注意：这些脚本需要[PowerShell](https://github.com/PowerShell/PowerShell) （版本至少为5，通常是内置的）。
+注意：这些脚本需要新的[PowerShell](https://github.com/PowerShell/PowerShell) （版本至少为6）。
 - 安装：运行install.ps1
 - 卸载：运行uninstall.ps1
 
