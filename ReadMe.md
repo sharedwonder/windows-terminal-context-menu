@@ -26,7 +26,7 @@ Special thanks to lextm.
 | :- | :-: | :-: |
 | Support multiple languages | Yes | No |
 | Support Windows Terminal Preview | Yes | Yes |
-| Support PowerShell 5 | No (messy code) | No (cannot run) |
+| Support PowerShell 5 | No (messy code) | No |
 | Compatible with multiple Windows Terminal versions | Unknown | Version at least 0.11 |
 | Check environments | Yes | Yes |
 | Installation message | Have | Have |
@@ -65,7 +65,7 @@ Special thanks to lextm.
 | :- | :-: | :-: |
 | 支持多种语言 | 是 | 否 |
 | 支持Windows Terminal预览版 | 是 | 是 |
-| 支持PowerShell 5 | 否（乱码） | 否（不能执行） |
+| 支持PowerShell 5 | 否（乱码） | 否 |
 | 兼容多个Windows Terminal版本 | 未知 | 版本至少为0.11 |
 | 检查环境 | 是 | 是 |
 | 安装信息 | 有 | 有 |
