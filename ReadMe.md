@@ -33,6 +33,7 @@ Special thanks to lextm.
 | Administrator privileges | Not required | Required |
 | Multiple styles | Not have | Have |
 | Sort menus in the order of settings | Yes | No |
+| Support shortcut keys | Yes | No |
 
 ## 5.Known problems
 * After you ran install.ps1, some icons may not display. Just run install.ps1 again.
@@ -72,6 +73,7 @@ Special thanks to lextm.
 | 管理员权限 | 不需要 | 需要 |
 | 多种样式 | 无 | 有 |
 | 按设置的顺序排序菜单 | 是 | 否 |
+| 支持快捷键 | 是 | 否 |
 
 ## 5.已知问题
 * 运行install.ps1后，有的图标可能无法显示，再次运行install.ps1即可。
