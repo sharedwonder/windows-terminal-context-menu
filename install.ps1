@@ -2,26 +2,26 @@
 
 # Get the edition and the installation folder of Windows Terminal.
 function GetInstallationInfo() {
-    Write-Host $translations.LookingForWindowsTerminal
+    Write-Host (Invoke-Expression $translations.LookingForWindowsTerminal)
 
     $edition = 0
 
     # release edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminal))) {
-        Write-Host $translations.FoundWindowsTerminal.Replace('$version', $appx.Version)
+        Write-Host (Invoke-Expression $translations.FoundWindowsTerminal.Replace('$version', $appx.Version))
         $folder = $appx.InstallLocation
         $edition = 1
     }
 
     # preview edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminalPreview))) {
-        Write-Host $translations.FoundWindowsTerminalPreview.Replace('$version', $appx.Version)
+        Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview.Replace('$version', $appx.Version))
         if ($edition -ne 0) {
             $edition = 2
             $folder = $appx.InstallLocation
         } else {
             do {
-                Write-Host $translations.SelectEdition
+                Write-Host (Invoke-Expression $translations.SelectEdition)
                 $edition = Read-Host
             } while (($edition -eq 1) -or ($edition -eq 2))
 
@@ -33,11 +33,11 @@ function GetInstallationInfo() {
 
     # Not found.
     if ($edition -eq 0) {
-        Write-Error $translations.NotInstalledWindowsTerminal
+        Write-Error (Invoke-Expression $translations.NotInstalledWindowsTerminal)
         exit 1
     }
 
-    Write-Host $translations.WindowsTerminalInstallationFolder.Replace('$folder', $folder)
+    Write-Host (Invoke-Expression $translations.WindowsTerminalInstallationFolder.Replace('$folder', $folder))
 
     return $edition, $folder
 }
@@ -52,7 +52,7 @@ function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
     }
 
     if (-not (Test-Path $file)) {
-        Write-Error $translations.SettingsNotExist
+        Write-Error (Invoke-Expression $translations.SettingsNotExist)
         exit 1
     }
 
@@ -153,7 +153,7 @@ function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Manda
 function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)]$index,
                             [Parameter(Mandatory = $true)][string]$folder, [Parameter(Mandatory = $true)][string]$defaultIcon,
                             [Parameter(Mandatory = $true)][string]$launcher) {
-    Write-Host $translations.AddingMenuSubitems.Replace('$guid', $profile.guid).Replace('$name', $profile.name)
+    Write-Host (Invoke-Expression $translations.AddingMenuSubitems.Replace('$guid', $profile.guid).Replace('$name', $profile.name))
 
     $guid = $profile.guid
     $name = $profile.name
@@ -186,12 +186,12 @@ function AddMenu([Parameter(Mandatory = $true)][String]$rootKey, [Parameter(Mand
     New-ItemProperty -Path $rootKey -Name 'Icon' -PropertyType String -Value $icon | Out-Null
 
     if ($elevated) {
-        New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value $translations.WindowsTerminalMenuElevated | Out-Null
+        New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
         New-ItemProperty -Path $rootKey -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenuElevated' | Out-Null
         New-ItemProperty -Path $rootKey -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
     }
     else {
-        New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value $translations.WindowsTerminalMenu | Out-Null
+        New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
         New-ItemProperty -Path $rootKey -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenu' | Out-Null
     }
 }
@@ -222,12 +222,12 @@ function GetTranslations() {
     do {
         for ($index = 1; $index -lt $context.Count; ++ $index) {
             if ($context[$index] -match "^\[.+\]") {
-                if ($context[$index].Equals("[language]".Replace("language", $language))) {
+                if ($context[$index].Equals("[$language]")) {
                     $flag = $true
                 } elseif ($flag) {
                     return
                 }
-            } elseif ($flag -and ($context[$index] -match "^\w+=[\s\S]+")) {
+            } elseif ($flag -and ($context[$index] -match "^\w+=.+")) {
                 # PowerShell will automatically store and return the results.
                 ConvertFrom-StringData -StringData $context[$index]
             }
@@ -243,7 +243,7 @@ function GetTranslations() {
 [System.Text.Encoding]::GetEncoding(65001) | Out-Null # Set the encoding to UTF-8.
 $translations = GetTranslations
 
-Write-Host $translations.InstallingWindowsTerminalContextMenu
+Write-Host (Invoke-Expression $translations.InstallingWindowsTerminalContextMenu)
 
 $info = GetInstallationInfo
 $edition = $info[0]
@@ -261,5 +261,5 @@ Copy-Item "$PSScriptRoot\launch.vbs" "$storage\launch.vbs"
 for ($index = 0; $index -lt $profiles.Count; ++ $index) {
     AddProfileMenuItem $profiles[$index] $index $folder $icon "$storage\launch.vbs"
 }
-Write-Host $translations.InstalledSuccessfully
+Write-Host (Invoke-Expression $translations.InstalledSuccessfully)
 exit 0
