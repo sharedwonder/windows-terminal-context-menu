@@ -232,6 +232,7 @@ function GetTranslations() {
                 ConvertFrom-StringData -StringData $context[$index]
             }
         }
+
         # There aren't any translations corresponding to the system language, use default language: English (US).
         if (-not $flag) {
             Write-Warning "There aren't any translations corresponding to the system language, use default language: English (US)."
