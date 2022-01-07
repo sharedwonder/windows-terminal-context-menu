@@ -26,7 +26,6 @@ Special thanks to lextm.
 | :- | :-: | :-: |
 | Support multiple languages | Yes | No |
 | Support Windows Terminal Preview | Yes | Yes |
-| Support PowerShell 5 | No (messy code) | No |
 | Compatible with multiple Windows Terminal versions | Unknown | Version at least 0.11 |
 | Check environments | Yes | Yes |
 | Installation message | Have | Have |
@@ -47,7 +46,7 @@ Special thanks to lextm.
 
 本软件可在此自动生成在此处打开Windows Terminal的右键菜单。
 
-脚本可以自动识别系统语言。
+脚本会自动识别系统语言。
 - 当前支持的语言：请查看[翻译文件](./translations.ini)。
 
 ## 2.安装/卸载
@@ -66,10 +65,9 @@ Special thanks to lextm.
 | :- | :-: | :-: |
 | 支持多种语言 | 是 | 否 |
 | 支持Windows Terminal预览版 | 是 | 是 |
-| 支持PowerShell 5 | 否（乱码） | 否 |
 | 兼容多个Windows Terminal版本 | 未知 | 版本至少为0.11 |
 | 检查环境 | 是 | 是 |
-| 安装信息 | 有 | 有 |
+| 安装消息 | 有 | 有 |
 | 管理员权限 | 不需要 | 需要 |
 | 多种样式 | 无 | 有 |
 | 按设置的顺序排序菜单 | 是 | 否 |
