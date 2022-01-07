@@ -20,6 +20,7 @@ function GetInstallationInfo() {
             $edition = 2
             $folder = $appx.InstallLocation
         } else {
+            # Found multiple editions.
             do {
                 Write-Host (Invoke-Expression $translations.SelectEdition)
                 $edition = Read-Host
