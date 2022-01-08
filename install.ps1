@@ -8,14 +8,16 @@ function GetInstallationInfo() {
 
     # release edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminal))) {
-        Write-Host (Invoke-Expression $translations.FoundWindowsTerminal.Replace('$version', $appx.Version))
+        $version = $appx.Version
+        Write-Host (Invoke-Expression $translations.FoundWindowsTerminal)
         $folder = $appx.InstallLocation
         $edition = 1
     }
 
     # preview edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminalPreview))) {
-        Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview.Replace('$version', $appx.Version))
+        $version = $appx.Version
+        Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview)
         if ($edition -ne 0) {
             $edition = 2
             $folder = $appx.InstallLocation
@@ -36,6 +38,8 @@ function GetInstallationInfo() {
     if ($edition -eq 0) {
         Write-Error (Invoke-Expression $translations.NotInstalledWindowsTerminal)
         exit 1
+    } elseif ($version -lt "1.0") {
+        Write-Host (Invoke-Expression $translations.WindowsTerminalVersionTooOld)
     }
 
     Write-Host (Invoke-Expression $translations.WindowsTerminalInstallationFolder)
@@ -190,8 +194,7 @@ function AddMenu([Parameter(Mandatory = $true)][String]$rootKey, [Parameter(Mand
         New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
         New-ItemProperty -Path $rootKey -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenuElevated' | Out-Null
         New-ItemProperty -Path $rootKey -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
-    }
-    else {
+    } else {
         New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
         New-ItemProperty -Path $rootKey -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenu' | Out-Null
     }
@@ -223,7 +226,7 @@ function GetTranslations() {
     do {
         for ($index = 1; $index -lt $context.Count; ++ $index) {
             if ($context[$index] -match "^\[.+\]") {
-                if ($context[$index].Equals("[$language]")) {
+                if ($context[$index] -eq "[$language]") {
                     $flag = $true
                 } elseif ($flag) {
                     return
@@ -234,9 +237,9 @@ function GetTranslations() {
             }
         }
 
-        # There aren't any translations corresponding to the system language, use default language: English (US).
+        # There aren't any translations corresponding to the system language, using default language: English (US).
         if (-not $flag) {
-            Write-Warning "There aren't any translations corresponding to the system language, use default language: English (US)."
+            Write-Warning "There aren't any translations corresponding to the system language, using default language: English (US)."
             $language = "en-US"
         }
     } while (-not $flag)
