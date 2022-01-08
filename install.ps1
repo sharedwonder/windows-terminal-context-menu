@@ -38,7 +38,7 @@ function GetInstallationInfo() {
         exit 1
     }
 
-    Write-Host (Invoke-Expression $translations.WindowsTerminalInstallationFolder.Replace('$folder', $folder))
+    Write-Host (Invoke-Expression $translations.WindowsTerminalInstallationFolder)
 
     return $edition, $folder
 }
@@ -154,11 +154,11 @@ function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Manda
 function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)]$index,
                             [Parameter(Mandatory = $true)][string]$folder, [Parameter(Mandatory = $true)][string]$defaultIcon,
                             [Parameter(Mandatory = $true)][string]$launcher) {
-    Write-Host (Invoke-Expression $translations.AddingMenuSubitems.Replace('$guid', $profile.guid).Replace('$name', $profile.name))
-
     $guid = $profile.guid
     $name = $profile.name
     $icon = GetProfileIcon $profile $folder $defaultIcon
+
+    Write-Host (Invoke-Expression $translations.AddingMenuSubitems)
 
     $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenu\shell\$index-$guid"
     $command = "wscript `"$launcher`" `"%V\.`" $guid"
@@ -263,5 +263,6 @@ Copy-Item "$PSScriptRoot\launch.vbs" "$storage\launch.vbs"
 for ($index = 0; $index -lt $profiles.Count; ++ $index) {
     AddProfileMenuItem $profiles[$index] $index $folder $icon "$storage\launch.vbs"
 }
+
 Write-Host (Invoke-Expression $translations.InstalledSuccessfully)
 exit 0
