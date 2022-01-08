@@ -214,7 +214,7 @@ function CreateMenus([Parameter(Mandatory = $true)][string]$storage, [Parameter(
 
 # Get translations.
 function GetTranslations() {
-    $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Get file translations.
+    $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read translations file.
     $context -replace("#.*", "") # Delete comments.
     $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get system language.
     $flag = $false # Use to determine if translations corresponding to the system language has been found.
