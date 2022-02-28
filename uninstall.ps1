@@ -64,9 +64,10 @@ function GetTranslations() {
 [System.Text.Encoding]::GetEncoding(65001) | Out-Null # Set the encoding to UTF-8.
 $translations = GetTranslations
 
-Write-Host $translations.UninstallingWindowsTerminalContextMenu
+Write-Host (Invoke-Expression $translations.UninstallingWindowsTerminalContextMenu)
 
 RemoveMenus
 RemoveStorage
-Write-Host $translations.UninstalledSuccessfully
+
+Write-Host (Invoke-Expression $translations.UninstalledSuccessfully)
 exit 0
