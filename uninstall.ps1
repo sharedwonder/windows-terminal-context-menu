@@ -37,28 +37,28 @@ function GetTranslations() {
     $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Get file translations.
     $context -replace("#.*", "") # Delete comments.
     $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get system language.
-    $flag = $false # Use to determine if translations corresponding to the system language has been found.
+    $found = $false # Use to determine if translations corresponding to the system language has been found.
 
     # Parse file contents.
     do {
-        for ($index = 1; $index -lt $context.Count; ++ $index) {
+        for ($index = 0; $index -lt $context.Count; ++ $index) {
             if ($context[$index] -match "^\[.+\]") {
                 if ($context[$index].Equals("[language]".Replace("language", $language))) {
-                    $flag = $true
-                } elseif ($flag) {
+                    $found = $true
+                } elseif ($found) {
                     return
                 }
-            } elseif ($flag -and ($context[$index] -match "^\w+=[\s\S]+")) {
+            } elseif ($found -and ($context[$index] -match "^\w+=[\s\S]+")) {
                 # PowerShell will automatically store and return the results.
                 ConvertFrom-StringData -StringData $context[$index]
             }
         }
         # There aren't any translations corresponding to the system language, use default language: English (US).
-        if (-not $flag) {
+        if (-not $found) {
             Write-Warning "There aren't any translations corresponding to the system language, use default language: English (US)."
             $language = "en-US"
         }
-    } while (-not $flag)
+    } while (-not $found)
 }
 
 [System.Text.Encoding]::GetEncoding(65001) | Out-Null # Set the encoding to UTF-8.

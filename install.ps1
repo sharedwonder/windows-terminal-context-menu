@@ -39,7 +39,7 @@ function GetInstallationInfo() {
         Write-Error (Invoke-Expression $translations.NotInstalledWindowsTerminal)
         exit 1
     } elseif ($version -lt "1.0") {
-        Write-Host (Invoke-Expression $translations.WindowsTerminalVersionTooOld)
+        Write-Warning (Invoke-Expression $translations.WindowsTerminalVersionTooOld)
     }
 
     Write-Host (Invoke-Expression $translations.WindowsTerminalInstallationFolder)
