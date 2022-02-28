@@ -20,22 +20,19 @@ Note: These scripts require new [PowerShell](https://github.com/PowerShell/Power
 
 ## 3.Thanks
 
-This project is based on lextm's ["windowsterminal shell" project](https://github.com/lextm/windowsterminal-shell).
+This project is modified on lextm's ["windowsterminal shell" project](https://github.com/lextm/windowsterminal-shell).
 Special thanks to lextm.
 
 ## 4.Compare with "windowsterminal shell"
 
 | | Windows Terminal Context Menu | windowsterminal shell |
 | :- | :-: | :-: |
-| Support multiple languages | Yes | No |
-| Support Windows Terminal Preview | Yes | Yes |
-| Compatible with multiple Windows Terminal versions | Unknown | Version at least 0.11 |
-| Check environments | Yes | Yes |
-| Installation message | Have | Have |
-| Administrator privileges | Not required | Required |
-| Multiple styles | Not have | Have |
+| Supported multiple languages | Yes | No |
+| Supported Windows Terminal Preview | Yes | Yes |
+| Not required administrator privileges | Yes | No |
+| Supported multiple styles | No | Yes |
 | Sort menus in the order of settings | Yes | No |
-| Support shortcut keys | Yes | No |
+| Supported shortcut keys | Yes | No |
 
 ## 5.Known problems
 
@@ -64,7 +61,7 @@ Special thanks to lextm.
 
 ## 3.感谢
 
-此项目基于lextm的[“windowsterminal shell”项目](https://github.com/lextm/windowsterminal-shell)。
+此项目修改于lextm的[“windowsterminal shell”项目](https://github.com/lextm/windowsterminal-shell)。
 特别感谢lextm。
 
 ## 4.与"windowsterminal shell"比较
@@ -73,11 +70,8 @@ Special thanks to lextm.
 | :- | :-: | :-: |
 | 支持多种语言 | 是 | 否 |
 | 支持Windows Terminal预览版 | 是 | 是 |
-| 兼容多个Windows Terminal版本 | 未知 | 版本至少为0.11 |
-| 检查环境 | 是 | 是 |
-| 安装消息 | 有 | 有 |
-| 管理员权限 | 不需要 | 需要 |
-| 多种样式 | 无 | 有 |
+| 不需要管理员权限 | 是 | 否 |
+| 支持多种样式 | 否 | 是 |
 | 按设置的顺序排序菜单 | 是 | 否 |
 | 支持快捷键 | 是 | 否 |
 

@@ -18,7 +18,7 @@ function GetInstallationInfo() {
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminalPreview))) {
         $version = $appx.Version
         Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview)
-        if ($edition -ne 0) {
+        if ($edition -eq 0) {
             $edition = 2
             $folder = $appx.InstallLocation
         } else {
@@ -50,10 +50,10 @@ function GetInstallationInfo() {
 # Get active profiles of Windows Terminal.
 function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
     if ($edition -eq 1) {
-        $file = "$Env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+        $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 
     } else {
-        $file = "$Env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+        $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
     }
 
     if (-not (Test-Path $file)) {
@@ -164,39 +164,39 @@ function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(M
 
     Write-Host (Invoke-Expression $translations.AddingMenuSubitems)
 
-    $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenu\shell\$index-$guid"
+    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenu\shell\$index-$guid"
     $command = "wscript `"$launcher`" `"%V\.`" $guid"
 
-    New-Item -Path $rootKey -Force | Out-Null
-    New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
-    New-ItemProperty -Path $rootKey -Name 'Icon' -PropertyType String -Value $icon | Out-Null
-    New-Item -Path "$rootKey\command" -Force | Out-Null
-    New-ItemProperty -Path "$rootKey\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
+    New-Item -Path $key -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
+    New-ItemProperty -Path $key -Name 'Icon' -PropertyType String -Value $icon | Out-Null
+    New-Item -Path "$key\command" -Force | Out-Null
+    New-ItemProperty -Path "$key\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
 
-    $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenuElevated\shell\$index-$guid"
+    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenuElevated\shell\$index-$guid"
     $command = "wscript `"$PSScriptRoot\launch.vbs`" `"%V\.`" $guid elevated"
 
-    New-Item -Path $rootKey -Force | Out-Null
-    New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
-    New-ItemProperty -Path $rootKey -Name 'Icon' -PropertyType String -Value $icon | Out-Null
-    New-ItemProperty -Path $rootKey -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
-    New-Item -Path "$rootKey\command" -Force | Out-Null
-    New-ItemProperty -Path "$rootKey\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
+    New-Item -Path $key -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
+    New-ItemProperty -Path $key -Name 'Icon' -PropertyType String -Value $icon | Out-Null
+    New-ItemProperty -Path $key -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
+    New-Item -Path "$key\command" -Force | Out-Null
+    New-ItemProperty -Path "$key\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
 }
 
 # Add a menu that open Windows Terminal.
-function AddMenu([Parameter(Mandatory = $true)][String]$rootKey, [Parameter(Mandatory = $true)][String]$icon,
+function AddMenu([Parameter(Mandatory = $true)][String]$key, [Parameter(Mandatory = $true)][String]$icon,
                  [Parameter(Mandatory = $true)][bool]$elevated) {
-    New-Item -Path $rootKey -Force | Out-Null
-    New-ItemProperty -Path $rootKey -Name 'Icon' -PropertyType String -Value $icon | Out-Null
+    New-Item -Path $key -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'Icon' -PropertyType String -Value $icon | Out-Null
 
     if ($elevated) {
-        New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
-        New-ItemProperty -Path $rootKey -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenuElevated' | Out-Null
-        New-ItemProperty -Path $rootKey -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
+        New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
+        New-ItemProperty -Path $key -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenuElevated' | Out-Null
+        New-ItemProperty -Path $key -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
     } else {
-        New-ItemProperty -Path $rootKey -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
-        New-ItemProperty -Path $rootKey -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenu' | Out-Null
+        New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
+        New-ItemProperty -Path $key -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenu' | Out-Null
     }
 }
 
@@ -220,29 +220,29 @@ function GetTranslations() {
     $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read translations file.
     $context -replace("#.*", "") # Delete comments.
     $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get system language.
-    $flag = $false # Use to determine if translations corresponding to the system language has been found.
+    $found = $false # Use to determine if translations corresponding to the system language has been found.
 
     # Parse file contents.
     do {
-        for ($index = 1; $index -lt $context.Count; ++ $index) {
+        for ($index = 0; $index -lt $context.Count; ++ $index) {
             if ($context[$index] -match "^\[.+\]") {
                 if ($context[$index] -eq "[$language]") {
-                    $flag = $true
-                } elseif ($flag) {
+                    $found = $true
+                } elseif ($found) {
                     return
                 }
-            } elseif ($flag -and ($context[$index] -match "^\w+=.+")) {
+            } elseif ($found -and ($context[$index] -match "^\w+=.+")) {
                 # PowerShell will automatically store and return the results.
                 ConvertFrom-StringData -StringData $context[$index]
             }
         }
 
         # There aren't any translations corresponding to the system language, using default language: English (US).
-        if (-not $flag) {
+        if (-not $found) {
             Write-Warning "There aren't any translations corresponding to the system language, using default language: English (US)."
             $language = "en-US"
         }
-    } while (-not $flag)
+    } while (-not $found)
 }
 
 [System.Text.Encoding]::GetEncoding(65001) | Out-Null # Set the encoding to UTF-8.
@@ -256,7 +256,7 @@ $folder = $info[1]
 $profiles = GetActiveProfiles $edition
 $icon = "$PSScriptRoot\icon.ico"
 
-$storage = "$Env:LocalAppData\WindowsTerminalMenuContext"
+$storage = "$env:LocalAppData\WindowsTerminalMenuContext"
 if (-not (Test-Path $storage)) {
     New-Item -Path $storage -ItemType Directory | Out-Null
 }
