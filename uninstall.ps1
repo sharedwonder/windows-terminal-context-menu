@@ -7,7 +7,7 @@ function RemoveKey([Parameter(Mandatory = $true)]$key) {
 
 # Remove all context menus that open Windows Terminal.
 function RemoveMenus() {
-    Write-Host $translations.RemovingMenus
+    Write-Host (Invoke-Expression $translations.RemovingMenus)
 
     RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenu"
     RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenuElevated"
@@ -24,7 +24,7 @@ function RemoveMenus() {
 
 # Remove the storage this software folder
 function RemoveStorage() {
-    Write-Host $translations.RemovingStorage
+    Write-Host (Invoke-Expression $translations.RemovingStorage)
 
     $storage = "$Env:LocalAppData\WindowsTerminalMenuContext"
     if (Test-Path $storage) {
