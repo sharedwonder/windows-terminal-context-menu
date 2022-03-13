@@ -51,7 +51,6 @@ function GetInstallationInfo() {
 function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
     if ($edition -eq 1) {
         $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-
     } else {
         $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
     }
@@ -128,39 +127,62 @@ function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(M
 
 # Get the icon of a profile.
 function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)][string]$folder,
-                        [Parameter(Mandatory = $true)][string]$defaultIcon) {
-    if ($null -ne $profile.icon) {
-        # For profiles with a user-defined icon.
-        return $profile.icon
+                        [Parameter(Mandatory = $true)][string]$defaultIcon, [Parameter(Mandatory = $true)][int]$edition) {
+    if ($profile.source -eq "Windows.Terminal.Wsl") {
+        $guid = "{9acb9455-ca41-5af7-950f-6bca1bc9722f}"
     } else {
-        if ($profile.source -eq "Windows.Terminal.Wsl") {
-            # For WSL (Windows Subsystem for Linux).
-            $guid = "{9acb9455-ca41-5af7-950f-6bca1bc9722f}"
+        $guid = $profile.guid
+    }
+
+    if ($null -ne $profile.icon) {
+        if ($profile.icon -match "^ms-appx:///.*") {
+            $iconFile = $folder + "\" + ($profile.icon -replace ("ms-appx:///", "") -replace ("/", "\"))
+            if (-not ($iconFile -match "^.*\.scale-.*\.png$")) {
+                $iconFile = $iconFile -replace ("\.png$", ".scale-200.png")
+            }
+        } elseif ($profile.icon -match "^ms-appdata:///Local/.*") {
+            if ($edition -eq 1) {
+                $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\" +
+                    ($profile.icon -replace ("ms-appdata:///Local/", "") -replace ("/", "\"))
+            } else {
+                $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\" +
+                    ($profile.icon -replace ("ms-appdata:///Local/", "") -replace ("/", "\"))
+            }
+        } elseif ($profile.icon -match "^ms-appdata:///Roaming/.*") {
+            if ($edition -eq 1) {
+                $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\RoamingState\" +
+                    ($profile.icon -replace ("ms-appdata:///Roaming/", "") -replace ("/", "\"))
+            } else {
+                $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\RoamingState\" +
+                    ($profile.icon -replace ("ms-appdata:///Roaming/", "") -replace ("/", "\"))
+            }
         } else {
-            $guid = $profile.guid
+            $iconFile = [System.Environment]::ExpandEnvironmentVariables($profile.icon)
+        }
+    } else {
+        $iconFile = "$folder\ProfileIcons\$guid.scale-200.png"
+    }
+
+    if (Test-Path $iconFile) {
+        if ($iconFile -match ".*\.ico$") {
+            return $iconFile
         }
 
-        $profilePng = "$folder\ProfileIcons\$guid.scale-200.png"
-        if (Test-Path $profilePng) {
-            # For automatically generated profiles.
-            $icon = "$storage\$guid.ico"
-
-            ConvertToIcon $profilePng $icon
-            return $icon
-        } else {
-            # For profiles without a icon.
-            return $defaultIcon
-        }
+        $newIcon = "$storage\$guid.ico"
+        ConvertToIcon $iconFile $newIcon
+        return $newIcon
+    } else {
+        return $defaultIcon
     }
 }
 
 # Add menu subitems for a profile.
 function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)]$index,
                             [Parameter(Mandatory = $true)][string]$folder, [Parameter(Mandatory = $true)][string]$defaultIcon,
-                            [Parameter(Mandatory = $true)][string]$launcher) {
+                            [Parameter(Mandatory = $true)][string]$launcher, [Parameter(Mandatory = $true)][int]$edition) {
     $guid = $profile.guid
     $name = $profile.name
-    $icon = GetProfileIcon $profile $folder $defaultIcon
+    $icon = GetProfileIcon $profile $folder $defaultIcon $edition
 
     Write-Host (Invoke-Expression $translations.AddingMenuSubitems)
 
@@ -218,7 +240,7 @@ function CreateMenus([Parameter(Mandatory = $true)][string]$storage, [Parameter(
 # Get translations.
 function GetTranslations() {
     $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read translations file.
-    $context -replace("#.*", "") # Delete comments.
+    $context -replace ("#.*", "") # Delete comments.
     $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get system language.
     $found = $false # Use to determine if translations corresponding to the system language has been found.
 
@@ -264,7 +286,7 @@ if (-not (Test-Path $storage)) {
 CreateMenus $storage $icon
 Copy-Item "$PSScriptRoot\launch.vbs" "$storage\launch.vbs"
 for ($index = 0; $index -lt $profiles.Count; ++ $index) {
-    AddProfileMenuItem $profiles[$index] $index $folder $icon "$storage\launch.vbs"
+    AddProfileMenuItem $profiles[$index] $index $folder $icon "$storage\launch.vbs" $edition
 }
 
 Write-Host (Invoke-Expression $translations.InstalledSuccessfully)
