@@ -196,7 +196,7 @@ function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(M
     New-ItemProperty -Path "$key\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
 
     $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenuElevated\shell\$index-$guid"
-    $command = "wscript `"$PSScriptRoot\launch.vbs`" `"%V\.`" $guid elevated"
+    $command = "wscript `"$launcher`" `"%V\.`" $guid -elevated"
 
     New-Item -Path $key -Force | Out-Null
     New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
