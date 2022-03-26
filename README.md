@@ -1,6 +1,7 @@
 [English](#English) | [简体中文](#Chinese)
 
 # <div id="English">Windows Terminal Context Menu</div>
+
 This software is licensed under MIT licence.
 
 ## 1.Introducing
@@ -9,11 +10,23 @@ This software can automatically generate and open the right-click menu of Window
 
 The script can automatically recognize the system language.
 
-- Currently supported languages: see [translations file](./translations.ini).
+- Currently supported languages: see [translations file](translations.ini).
 
 ## 2.Install/Uninstall
 
 Note: These scripts require new [PowerShell](https://github.com/PowerShell/PowerShell) (version at least 6).
+
+First, clone this repository:
+
+```powershell
+git clone https://github.com/idealarch/Windows-Terminal-Context-Menu.git
+```
+
+If your system does not allow executing unsigned PowerShell scripts, execute the following command to allow the current PowerShell session execute unsignified scripts:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+```
 
 - To install: run install.ps1
 - To uninstall: run uninstall.ps1
@@ -50,11 +63,23 @@ Special thanks to lextm.
 
 脚本会自动识别系统语言。
 
-- 当前支持的语言：请查看[翻译文件](./translations.ini)。
+- 当前支持的语言：请查看[翻译文件](translations.ini)。
 
 ## 2.安装/卸载
 
 注意：这些脚本需要新的[PowerShell](https://github.com/PowerShell/PowerShell) （版本至少为6）。
+
+首先，克隆这个仓库：
+
+```powershell
+git clone https://github.com/idealarch/Windows-Terminal-Context-Menu.git
+```
+
+如果你的系统不允许运行未签名的PowerShell脚本，执行以下命令以允许当前PowerShell会话允许未签名脚本：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+```
 
 - 安装：运行install.ps1
 - 卸载：运行uninstall.ps1
