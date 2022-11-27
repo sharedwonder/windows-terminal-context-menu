@@ -6,21 +6,23 @@ function GetInstallationInfo() {
 
     $edition = 0
 
-    # release edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminal))) {
+        # release edition
         $version = $appx.Version
         Write-Host (Invoke-Expression $translations.FoundWindowsTerminal)
         $folder = $appx.InstallLocation
         $edition = 1
+        $selectVersion = $version
     }
 
-    # preview edition
     if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminalPreview))) {
+        # preview edition
         $version = $appx.Version
         Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview)
         if ($edition -eq 0) {
             $edition = 2
             $folder = $appx.InstallLocation
+            $selectVersion = $version
         } else {
             # Found multiple editions.
             do {
@@ -30,6 +32,7 @@ function GetInstallationInfo() {
 
             if ($edition -eq 2) {
                 $folder = $appx.InstallLocation
+                $selectVersion = $version
             }
         }
     }
@@ -38,7 +41,7 @@ function GetInstallationInfo() {
     if ($edition -eq 0) {
         Write-Error (Invoke-Expression $translations.NotInstalledWindowsTerminal)
         exit 1
-    } elseif ($version -lt "1.0") {
+    } elseif ($selectVersion -lt "1.0") {
         Write-Warning (Invoke-Expression $translations.WindowsTerminalVersionTooOld)
     }
 
@@ -63,11 +66,10 @@ function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
     # Read and parse settings of Windows Terminal.
     $settings = Get-Content $file | Out-String | ConvertFrom-Json
 
-    # Compatible with older Windows Terminal.
     if ($settings.profiles.PSObject.Properties.name -match "list") {
+        # old Windows Terminal
         $list = $settings.profiles.list
-    }
-    else {
+    } else {
         $list = $settings.profiles
     }
 
@@ -190,35 +192,35 @@ function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(M
     $command = "wscript `"$launcher`" `"%V\.`" $guid"
 
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
-    New-ItemProperty -Path $key -Name 'Icon' -PropertyType String -Value $icon | Out-Null
+    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $name | Out-Null
+    New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
     New-Item -Path "$key\command" -Force | Out-Null
-    New-ItemProperty -Path "$key\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
+    New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 
     $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenuElevated\shell\$index-$guid"
     $command = "wscript `"$launcher`" `"%V\.`" $guid -elevated"
 
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
-    New-ItemProperty -Path $key -Name 'Icon' -PropertyType String -Value $icon | Out-Null
-    New-ItemProperty -Path $key -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
+    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $name | Out-Null
+    New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
+    New-ItemProperty -Path $key -Name "HasLUAShield" -PropertyType String -Value "" | Out-Null
     New-Item -Path "$key\command" -Force | Out-Null
-    New-ItemProperty -Path "$key\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
+    New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 }
 
 # Add a menu that open Windows Terminal.
 function AddMenu([Parameter(Mandatory = $true)][String]$key, [Parameter(Mandatory = $true)][String]$icon,
                  [Parameter(Mandatory = $true)][bool]$elevated) {
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name 'Icon' -PropertyType String -Value $icon | Out-Null
+    New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
 
     if ($elevated) {
-        New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
-        New-ItemProperty -Path $key -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenuElevated' | Out-Null
-        New-ItemProperty -Path $key -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
+        New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
+        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalMenuElevated" | Out-Null
+        New-ItemProperty -Path $key -Name "HasLUAShield" -PropertyType String -Value "" | Out-Null
     } else {
-        New-ItemProperty -Path $key -Name 'MUIVerb' -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
-        New-ItemProperty -Path $key -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'WindowsTerminalMenu' | Out-Null
+        New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
+        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalMenu" | Out-Null
     }
 }
 
@@ -267,7 +269,6 @@ function GetTranslations() {
     } while (-not $found)
 }
 
-[System.Text.Encoding]::GetEncoding(65001) | Out-Null # Set the encoding to UTF-8.
 $translations = GetTranslations
 
 Write-Host (Invoke-Expression $translations.InstallingWindowsTerminalContextMenu)
