@@ -22,6 +22,8 @@ First, clone this repository:
 git clone https://github.com/idealarch/Windows-Terminal-Context-Menu.git
 ```
 
+- or download the archive.
+
 If your system does not allow executing unsigned PowerShell scripts, execute the following command to allow the current PowerShell session execute unsignified scripts:
 
 ```powershell
@@ -75,7 +77,9 @@ Special thanks to lextm.
 git clone https://github.com/idealarch/Windows-Terminal-Context-Menu.git
 ```
 
-如果你的系统不允许运行未签名的PowerShell脚本，执行以下命令以允许当前PowerShell会话允许未签名脚本：
+- 或者下载存根。
+
+如果你的系统不允许运行未签名的PowerShell脚本，执行以下命令以允许当前PowerShell会话执行未签名脚本：
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
