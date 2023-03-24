@@ -130,12 +130,6 @@ function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(M
 # Get the icon of a profile.
 function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)][string]$folder,
                         [Parameter(Mandatory = $true)][string]$defaultIcon, [Parameter(Mandatory = $true)][int]$edition) {
-    if ($profile.source -eq "Windows.Terminal.Wsl") {
-        $guid = "{9acb9455-ca41-5af7-950f-6bca1bc9722f}"
-    } else {
-        $guid = $profile.guid
-    }
-
     if ($null -ne $profile.icon) {
         if ($profile.icon -match "^ms-appx:///.*") {
             $iconFile = $folder + "\" + ($profile.icon -replace ("ms-appx:///", "") -replace ("/", "\"))
@@ -162,7 +156,18 @@ function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Manda
             $iconFile = [System.Environment]::ExpandEnvironmentVariables($profile.icon)
         }
     } else {
-        $iconFile = "$folder\ProfileIcons\$guid.scale-200.png"
+        if ($profile.source -eq "Windows.Terminal.Wsl") {
+            $iconFile = "$folder\ProfileIcons\{9acb9455-ca41-5af7-950f-6bca1bc9722f}.scale-200.png"
+        } elseif ($profile.source -eq "Git") {
+            $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw64\share\git\git-for-windows.ico")
+
+            if (-not (Test-Path $gitIcon)) {
+                $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw32\share\git\git-for-windows.ico")
+            }
+            $iconFile = $gitIcon
+        } else {
+            $iconFile = "$folder\ProfileIcons\$guid.scale-200.png"
+        }
     }
 
     if (Test-Path $iconFile) {
@@ -242,8 +247,7 @@ function CreateMenus([Parameter(Mandatory = $true)][string]$storage, [Parameter(
 # Get translations.
 function GetTranslations() {
     $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read translations file.
-    $context -replace ("#.*", "") # Delete comments.
-    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get system language.
+    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get current user language.
     $found = $false # Use to determine if translations corresponding to the system language has been found.
 
     # Parse file contents.
@@ -255,13 +259,12 @@ function GetTranslations() {
                 } elseif ($found) {
                     return
                 }
-            } elseif ($found -and ($context[$index] -match "^\w+=.+")) {
-                # PowerShell will automatically store and return the results.
+            } elseif ($found -and ($context[$index] -match "^\w+=.*")) {
+                # Automatically return as a list.
                 ConvertFrom-StringData -StringData $context[$index]
             }
         }
 
-        # There aren't any translations corresponding to the system language, using default language: English (US).
         if (-not $found) {
             Write-Warning "There aren't any translations corresponding to the system language, using default language: English (US)."
             $language = "en-US"
