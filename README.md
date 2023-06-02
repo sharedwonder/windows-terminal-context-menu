@@ -1,6 +1,6 @@
-[English](#English) | [简体中文](#Chinese)
+[English](#windows-terminal-context-menu) | [简体中文](#windows-terminal-上下文菜单)
 
-# <div id="English">Windows Terminal Context Menu</div>
+# Windows Terminal Context Menu
 
 This software is licensed under MIT licence.
 
@@ -55,7 +55,7 @@ Special thanks to lextm.
 
 ---
 
-# <div id="Chinese">Windows Terminal 上下文菜单</div>
+# Windows Terminal 上下文菜单
 
 此软件遵循麻省理工学院许可证（MIT）。
 

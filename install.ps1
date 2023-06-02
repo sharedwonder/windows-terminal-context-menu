@@ -51,7 +51,7 @@ function GetInstallationInfo() {
 }
 
 # Get active profiles of Windows Terminal.
-function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
+function GetActiveProfiles([Parameter(Mandatory)][int]$edition) {
     if ($edition -eq 1) {
         $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
     } else {
@@ -78,7 +78,7 @@ function GetActiveProfiles([Parameter(Mandatory = $true)][int]$edition) {
 }
 
 # Convert PNG to ICO (icon).
-function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(Mandatory = $true)][string]$outputFile) {
+function ConvertToIcon([Parameter(Mandatory)][string]$file, [Parameter(Mandatory)][string]$outputFile) {
     Add-Type -AssemblyName System.Drawing
 
     $resolvedFile = $ExecutionContext.SessionState.Path.GetResolvedPSPathFromPSPath($file)
@@ -128,37 +128,37 @@ function ConvertToIcon([Parameter(Mandatory = $true)][string]$file, [Parameter(M
 }
 
 # Get the icon of a profile.
-function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)][string]$folder,
-                        [Parameter(Mandatory = $true)][string]$defaultIcon, [Parameter(Mandatory = $true)][int]$edition) {
-    if ($null -ne $profile.icon) {
-        if ($profile.icon -match "^ms-appx:///.*") {
-            $iconFile = $folder + "\" + ($profile.icon -replace ("ms-appx:///", "") -replace ("/", "\"))
+function GetProfileIcon([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)][string]$folder,
+                        [Parameter(Mandatory)][string]$defaultIcon, [Parameter(Mandatory)][int]$edition) {
+    if ($null -ne $wtProfile.icon) {
+        if ($wtProfile.icon -match "^ms-appx:///.*") {
+            $iconFile = $folder + "\" + ($wtProfile.icon -replace ("ms-appx:///", "") -replace ("/", "\"))
             if (-not ($iconFile -match "^.*\.scale-.*\.png$")) {
                 $iconFile = $iconFile -replace ("\.png$", ".scale-200.png")
             }
-        } elseif ($profile.icon -match "^ms-appdata:///Local/.*") {
+        } elseif ($wtProfile.icon -match "^ms-appdata:///Local/.*") {
             if ($edition -eq 1) {
                 $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\" +
-                    ($profile.icon -replace ("ms-appdata:///Local/", "") -replace ("/", "\"))
+                    ($wtProfile.icon -replace ("ms-appdata:///Local/", "") -replace ("/", "\"))
             } else {
                 $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\" +
-                    ($profile.icon -replace ("ms-appdata:///Local/", "") -replace ("/", "\"))
+                    ($wtProfile.icon -replace ("ms-appdata:///Local/", "") -replace ("/", "\"))
             }
-        } elseif ($profile.icon -match "^ms-appdata:///Roaming/.*") {
+        } elseif ($wtProfile.icon -match "^ms-appdata:///Roaming/.*") {
             if ($edition -eq 1) {
                 $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\RoamingState\" +
-                    ($profile.icon -replace ("ms-appdata:///Roaming/", "") -replace ("/", "\"))
+                    ($wtProfile.icon -replace ("ms-appdata:///Roaming/", "") -replace ("/", "\"))
             } else {
                 $iconFile = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\RoamingState\" +
-                    ($profile.icon -replace ("ms-appdata:///Roaming/", "") -replace ("/", "\"))
+                    ($wtProfile.icon -replace ("ms-appdata:///Roaming/", "") -replace ("/", "\"))
             }
         } else {
-            $iconFile = [System.Environment]::ExpandEnvironmentVariables($profile.icon)
+            $iconFile = [System.Environment]::ExpandEnvironmentVariables($wtProfile.icon)
         }
     } else {
-        if ($profile.source -eq "Windows.Terminal.Wsl") {
+        if ($wtProfile.source -eq "Windows.Terminal.Wsl") {
             $iconFile = "$folder\ProfileIcons\{9acb9455-ca41-5af7-950f-6bca1bc9722f}.scale-200.png"
-        } elseif ($profile.source -eq "Git") {
+        } elseif ($wtProfile.source -eq "Git") {
             $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw64\share\git\git-for-windows.ico")
 
             if (-not (Test-Path $gitIcon)) {
@@ -184,12 +184,12 @@ function GetProfileIcon([Parameter(Mandatory = $true)]$profile, [Parameter(Manda
 }
 
 # Add menu subitems for a profile.
-function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(Mandatory = $true)]$index,
-                            [Parameter(Mandatory = $true)][string]$folder, [Parameter(Mandatory = $true)][string]$defaultIcon,
-                            [Parameter(Mandatory = $true)][string]$launcher, [Parameter(Mandatory = $true)][int]$edition) {
-    $guid = $profile.guid
-    $name = $profile.name
-    $icon = GetProfileIcon $profile $folder $defaultIcon $edition
+function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index,
+                            [Parameter(Mandatory)][string]$folder, [Parameter(Mandatory)][string]$defaultIcon,
+                            [Parameter(Mandatory)][string]$launcher, [Parameter(Mandatory)][int]$edition) {
+    $guid = $wtProfile.guid
+    $name = $wtProfile.name
+    $icon = GetProfileIcon $wtProfile $folder $defaultIcon $edition
 
     Write-Host (Invoke-Expression $translations.AddingMenuSubitems)
 
@@ -214,8 +214,8 @@ function AddProfileMenuItem([Parameter(Mandatory = $true)]$profile, [Parameter(M
 }
 
 # Add a menu that open Windows Terminal.
-function AddMenu([Parameter(Mandatory = $true)][String]$key, [Parameter(Mandatory = $true)][String]$icon,
-                 [Parameter(Mandatory = $true)][bool]$elevated) {
+function AddMenu([Parameter(Mandatory)][String]$key, [Parameter(Mandatory)][String]$icon,
+                 [Parameter(Mandatory)][bool]$elevated) {
     New-Item -Path $key -Force | Out-Null
     New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
 
@@ -230,7 +230,7 @@ function AddMenu([Parameter(Mandatory = $true)][String]$key, [Parameter(Mandator
 }
 
 # Create all context menus that open Windows Terminal.
-function CreateMenus([Parameter(Mandatory = $true)][string]$storage, [Parameter(Mandatory = $true)][string]$icon) {
+function CreateMenus([Parameter(Mandatory)][string]$storage, [Parameter(Mandatory)][string]$icon) {
     Copy-Item $icon "$storage\WindowsTerminal.ico"
     $icon = "$storage\WindowsTerminal.ico"
 
@@ -279,7 +279,7 @@ Write-Host (Invoke-Expression $translations.InstallingWindowsTerminalContextMenu
 $info = GetInstallationInfo
 $edition = $info[0]
 $folder = $info[1]
-$profiles = GetActiveProfiles $edition
+$wtProfiles = GetActiveProfiles $edition
 $icon = "$PSScriptRoot\icon.ico"
 
 $storage = "$env:LocalAppData\WindowsTerminalMenuContext"
@@ -289,8 +289,8 @@ if (-not (Test-Path $storage)) {
 
 CreateMenus $storage $icon
 Copy-Item "$PSScriptRoot\launch.vbs" "$storage\launch.vbs"
-for ($index = 0; $index -lt $profiles.Count; ++ $index) {
-    AddProfileMenuItem $profiles[$index] $index $folder $icon "$storage\launch.vbs" $edition
+for ($index = 0; $index -lt $wtProfiles.Count; ++ $index) {
+    AddProfileMenuItem $wtProfiles[$index] $index $folder $icon "$storage\launch.vbs" $edition
 }
 
 Write-Host (Invoke-Expression $translations.InstalledSuccessfully)
