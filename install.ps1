@@ -1,6 +1,22 @@
 #Requires -Version 6
 
-# Get the edition and the installation folder of Windows Terminal.
+# Generates the launch script.
+function GenerateLaunchScript() {
+    Write-Output @"
+If Wscript.Arguments.Count > 1 Then
+    Set shell = WScript.CreateObject("Shell.Application")
+    folder = WScript.Arguments(0)
+    profile = WScript.Arguments(1)
+    If Wscript.Arguments.Count = 2 Then
+        shell.ShellExecute "wt", "-p " & profile & " -d """ & folder & """", "", "", 1
+    ElseIf WScript.Arguments(2) = "-elevated" Then
+        shell.ShellExecute "wt", "-p " & profile & " -d """ & folder & """", "", "RunAs", 1
+    End If
+End If
+"@ > "$storage\launch.vbs"
+}
+
+# Gets the edition and the installation folder of Windows Terminal.
 function GetInstallationInfo() {
     Write-Host (Invoke-Expression $translations.LookingForWindowsTerminal)
 
@@ -41,7 +57,8 @@ function GetInstallationInfo() {
     if ($edition -eq 0) {
         Write-Error (Invoke-Expression $translations.NotInstalledWindowsTerminal)
         exit 1
-    } elseif ($selectVersion -lt "1.0") {
+    }
+    elseif ($selectVersion -lt "1.0") {
         Write-Warning (Invoke-Expression $translations.WindowsTerminalVersionTooOld)
     }
 
@@ -50,8 +67,8 @@ function GetInstallationInfo() {
     return $edition, $folder
 }
 
-# Get active profiles of Windows Terminal.
-function GetActiveProfiles([Parameter(Mandatory)][int]$edition) {
+# Gets active profiles of Windows Terminal.
+function GetActiveProfiles() {
     if ($edition -eq 1) {
         $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
     } else {
@@ -67,17 +84,17 @@ function GetActiveProfiles([Parameter(Mandatory)][int]$edition) {
     $settings = Get-Content $file | Out-String | ConvertFrom-Json
 
     if ($settings.profiles.PSObject.Properties.name -match "list") {
-        # old Windows Terminal
+        # Old Windows Terminal
         $list = $settings.profiles.list
     } else {
         $list = $settings.profiles
     }
 
     # Exclude the disabled profiles and return active profiles.
-    return $list | Where-Object {-not $_.hidden} | Where-Object {($null -eq $_.source) -or -not ($settings.disabledProfileSources -contains $_.source)}
+    return $list | Where-Object { -not $_.hidden } | Where-Object { ($null -eq $_.source) -or -not ($settings.disabledProfileSources -contains $_.source) }
 }
 
-# Convert PNG to ICO (icon).
+# Converts PNG to ICO.
 function ConvertToIcon([Parameter(Mandatory)][string]$file, [Parameter(Mandatory)][string]$outputFile) {
     Add-Type -AssemblyName System.Drawing
 
@@ -127,9 +144,8 @@ function ConvertToIcon([Parameter(Mandatory)][string]$file, [Parameter(Mandatory
     $inputBitmap.Dispose()
 }
 
-# Get the icon of a profile.
-function GetProfileIcon([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)][string]$folder,
-                        [Parameter(Mandatory)][string]$defaultIcon, [Parameter(Mandatory)][int]$edition) {
+# Gets the icon of the provided profile.
+function GetProfileIcon([Parameter(Mandatory)]$wtProfile) {
     if ($null -ne $wtProfile.icon) {
         if ($wtProfile.icon -match "^ms-appx:///.*") {
             $iconFile = $folder + "\" + ($wtProfile.icon -replace ("ms-appx:///", "") -replace ("/", "\"))
@@ -158,14 +174,16 @@ function GetProfileIcon([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]
     } else {
         if ($wtProfile.source -eq "Windows.Terminal.Wsl") {
             $iconFile = "$folder\ProfileIcons\{9acb9455-ca41-5af7-950f-6bca1bc9722f}.scale-200.png"
-        } elseif ($wtProfile.source -eq "Git") {
+        }
+        elseif ($wtProfile.source -eq "Git") {
             $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw64\share\git\git-for-windows.ico")
 
             if (-not (Test-Path $gitIcon)) {
                 $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw32\share\git\git-for-windows.ico")
             }
             $iconFile = $gitIcon
-        } else {
+        }
+        else {
             $iconFile = "$folder\ProfileIcons\$guid.scale-200.png"
         }
     }
@@ -173,28 +191,37 @@ function GetProfileIcon([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]
     if (Test-Path $iconFile) {
         if ($iconFile -match ".*\.ico$") {
             return $iconFile
+        } elseif ($iconFile -match ".*\.png$") {    
+            $newIcon = "$storage\$guid.ico"
+            ConvertToIcon $iconFile $newIcon
+            return $newIcon
+        } elseif ($iconFile -match ".*\.exe$") {
+            $tempPng = "$env:TEMP\temp.png"
+            $newIcon = "$storage\$guid.ico"
+            [System.Drawing.Icon]::ExtractAssociatedIcon($iconFile).ToBitmap().Save($tempPng)
+            ConvertToIcon $tempPng $newIcon
+            Remove-Item $tempPng
+            return $newIcon
+        } else {
+            Write-Warning (Invoke-Expression $translations.UnknownIconFile)
+            return $terminalIcon
         }
-
-        $newIcon = "$storage\$guid.ico"
-        ConvertToIcon $iconFile $newIcon
-        return $newIcon
     } else {
-        return $defaultIcon
+        Write-Warning (Invoke-Expression $translations.IconFileNotFound)
+        return $terminalIcon
     }
 }
 
-# Add menu subitems for a profile.
-function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index,
-                            [Parameter(Mandatory)][string]$folder, [Parameter(Mandatory)][string]$defaultIcon,
-                            [Parameter(Mandatory)][string]$launcher, [Parameter(Mandatory)][int]$edition) {
+# Adds a menu subitem of the provided profile.
+function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index) {
     $guid = $wtProfile.guid
     $name = $wtProfile.name
-    $icon = GetProfileIcon $wtProfile $folder $defaultIcon $edition
+    $icon = GetProfileIcon $wtProfile
 
     Write-Host (Invoke-Expression $translations.AddingMenuSubitems)
 
-    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenu\shell\$index-$guid"
-    $command = "wscript `"$launcher`" `"%V\.`" $guid"
+    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu\shell\$index-$guid"
+    $command = "wscript `"$storage\launch.vbs`" `"%V\.`" $guid"
 
     New-Item -Path $key -Force | Out-Null
     New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $name | Out-Null
@@ -202,8 +229,8 @@ function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandato
     New-Item -Path "$key\command" -Force | Out-Null
     New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 
-    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalMenuElevated\shell\$index-$guid"
-    $command = "wscript `"$launcher`" `"%V\.`" $guid -elevated"
+    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated\shell\$index-$guid"
+    $command = "wscript `"$storage\launch.vbs`" `"%V\.`" $guid -elevated"
 
     New-Item -Path $key -Force | Out-Null
     New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $name | Out-Null
@@ -213,42 +240,46 @@ function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandato
     New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 }
 
-# Add a menu that open Windows Terminal.
-function AddMenu([Parameter(Mandatory)][String]$key, [Parameter(Mandatory)][String]$icon,
-                 [Parameter(Mandatory)][bool]$elevated) {
+# Adds a menu that open Windows Terminal.
+function AddMenu([Parameter(Mandatory)][String]$key, [Parameter(Mandatory)][bool]$elevated) {
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
+    New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $terminalIcon | Out-Null
 
     if ($elevated) {
-        New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenuElevated) | Out-Null
-        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalMenuElevated" | Out-Null
+        New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalContextMenuElevated) | Out-Null
+        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalContextMenuElevated" | Out-Null
         New-ItemProperty -Path $key -Name "HasLUAShield" -PropertyType String -Value "" | Out-Null
-    } else {
-        New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalMenu) | Out-Null
-        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalMenu" | Out-Null
+    }
+    else {
+        New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalContextMenu) | Out-Null
+        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalContextMenu" | Out-Null
     }
 }
 
-# Create all context menus that open Windows Terminal.
-function CreateMenus([Parameter(Mandatory)][string]$storage, [Parameter(Mandatory)][string]$icon) {
-    Copy-Item $icon "$storage\WindowsTerminal.ico"
-    $icon = "$storage\WindowsTerminal.ico"
+# Creates all context menus that open Windows Terminal.
+function CreateMenus() {
+    # Directory
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu" $false
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated" $true
 
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenu" $icon $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalMenuElevated" $icon $true
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalMenu" $icon $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalMenuElevated" $icon $true
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalMenu" $icon $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalMenuElevated" $icon $true
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalMenu" $icon $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalMenuElevated" $icon $true
+    # Directory background
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu" $false
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated" $true
+
+    # Drive
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu" $false
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated" $true
+
+    # Library background
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu" $false
+    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated" $true
 }
 
-# Get translations.
+# Gets translation strings.
 function GetTranslations() {
-    $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read translations file.
-    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get current user language.
-    $found = $false # Use to determine if translations corresponding to the system language has been found.
+    $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read the translation file.
+    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get the language of the current user.
+    $found = $false # Uses to determine if translations corresponding to the system language has been found.
 
     # Parse file contents.
     do {
@@ -256,17 +287,19 @@ function GetTranslations() {
             if ($context[$index] -match "^\[.+\]") {
                 if ($context[$index] -eq "[$language]") {
                     $found = $true
-                } elseif ($found) {
+                }
+                elseif ($found) {
                     return
                 }
-            } elseif ($found -and ($context[$index] -match "^\w+=.*")) {
+            }
+            elseif ($found -and ($context[$index] -match "^\w+=.*")) {
                 # Automatically return as a list.
                 ConvertFrom-StringData -StringData $context[$index]
             }
         }
 
         if (-not $found) {
-            Write-Warning "There aren't any translations corresponding to the system language, using default language: English (US)."
+            Write-Warning "There is no translation corresponding to the system language, and the default language is used: English (US)."
             $language = "en-US"
         }
     } while (-not $found)
@@ -276,22 +309,32 @@ $translations = GetTranslations
 
 Write-Host (Invoke-Expression $translations.InstallingWindowsTerminalContextMenu)
 
-$info = GetInstallationInfo
-$edition = $info[0]
-$folder = $info[1]
-$wtProfiles = GetActiveProfiles $edition
-$icon = "$PSScriptRoot\icon.ico"
-
-$storage = "$env:LocalAppData\WindowsTerminalMenuContext"
+$storage = "$env:LocalAppData\WindowsTerminalContextMenu"
 if (-not (Test-Path $storage)) {
     New-Item -Path $storage -ItemType Directory | Out-Null
 }
 
-CreateMenus $storage $icon
-Copy-Item "$PSScriptRoot\launch.vbs" "$storage\launch.vbs"
-for ($index = 0; $index -lt $wtProfiles.Count; ++ $index) {
-    AddProfileMenuItem $wtProfiles[$index] $index $folder $icon "$storage\launch.vbs" $edition
+$info = GetInstallationInfo
+$edition = $info[0]
+$folder = $info[1]
+$wtProfiles = GetActiveProfiles
+if ($edition -eq 1) {
+    $terminalIcon = "$storage\terminal.ico"   
+} else {
+    $terminalIcon = "$storage\terminal-preview.ico"
+}
+
+$tempPng = "$env:TEMP\temp.png"
+[System.Drawing.Icon]::ExtractAssociatedIcon("$folder\WindowsTerminal.exe").ToBitmap().Save($tempPng)
+ConvertToIcon $tempPng $terminalIcon
+Remove-Item $tempPng
+
+CreateMenus
+GenerateLaunchScript
+for ($index = 0; $index -lt $wtProfiles.Count; ++$index) {
+    AddProfileMenuItem $wtProfiles[$index] $index
 }
 
 Write-Host (Invoke-Expression $translations.InstalledSuccessfully)
+
 exit 0

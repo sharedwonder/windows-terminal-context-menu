@@ -19,7 +19,7 @@ Note: These scripts require new [PowerShell](https://github.com/PowerShell/Power
 First, clone this repository:
 
 ```powershell
-git clone https://github.com/idealarch/Windows-Terminal-Context-Menu.git
+git clone https://github.com/sharedwonder/Windows-Terminal-Context-Menu.git
 ```
 
 - or download the archive.
@@ -35,8 +35,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 ## 3.Thanks
 
-This project is modified on lextm's ["windowsterminal shell" project](https://github.com/lextm/windowsterminal-shell).
-Special thanks to lextm.
+Special thanks to lextm. This project is modified on lextm's ["windowsterminal shell"](https://github.com/lextm/windowsterminal-shell).
 
 ## 4.Compare with "windowsterminal shell"
 
@@ -48,10 +47,6 @@ Special thanks to lextm.
 | Supported multiple styles | No | Yes |
 | Sort menus in the order of settings | Yes | No |
 | Supported shortcut keys | Yes | No |
-
-## 5.Known problems
-
-- After you ran install.ps1, some icons may not display. Just run install.ps1 again.
 
 ---
 
@@ -74,7 +69,7 @@ Special thanks to lextm.
 首先，克隆这个仓库：
 
 ```powershell
-git clone https://github.com/idealarch/Windows-Terminal-Context-Menu.git
+git clone https://github.com/sharedwonder/Windows-Terminal-Context-Menu.git
 ```
 
 - 或者下载存根。
@@ -90,8 +85,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 ## 3.感谢
 
-此项目修改于lextm的[“windowsterminal shell”项目](https://github.com/lextm/windowsterminal-shell)。
-特别感谢lextm。
+特别感谢lextm，此项目修改于lextm的[“windowsterminal shell”](https://github.com/lextm/windowsterminal-shell)。
 
 ## 4.与"windowsterminal shell"比较
 
@@ -103,7 +97,3 @@ Set-ExecutionPolicy -Scope Process Bypass
 | 支持多种样式 | 否 | 是 |
 | 按设置的顺序排序菜单 | 是 | 否 |
 | 支持快捷键 | 是 | 否 |
-
-## 5.已知问题
-
-- 运行install.ps1后，有的图标可能无法显示，再次运行install.ps1即可。
