@@ -19,7 +19,7 @@ Note: These scripts require new [PowerShell](https://github.com/PowerShell/Power
 First, clone this repository:
 
 ```powershell
-git clone https://github.com/sharedwonder/Windows-Terminal-Context-Menu.git
+git clone https://github.com/sharedwonder/windows-terminal-context-menu.git
 ```
 
 - or download the archive.
@@ -69,7 +69,7 @@ Special thanks to lextm. This project is modified on lextm's ["windowsterminal s
 首先，克隆这个仓库：
 
 ```powershell
-git clone https://github.com/sharedwonder/Windows-Terminal-Context-Menu.git
+git clone https://github.com/sharedwonder/windows-terminal-context-menu.git
 ```
 
 - 或者下载存根。

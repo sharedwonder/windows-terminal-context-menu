@@ -285,7 +285,7 @@ function GetTranslations() {
     do {
         for ($index = 0; $index -lt $context.Count; ++ $index) {
             if ($context[$index] -match "^\[.+\]") {
-                if ($context[$index] -eq "[$language]") {
+                if ($context[$index] -ieq "[$language]") {
                     $found = $true
                 }
                 elseif ($found) {
