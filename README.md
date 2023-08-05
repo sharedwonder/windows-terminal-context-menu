@@ -10,7 +10,7 @@ This software can automatically generate and open the right-click menu of Window
 
 The script can automatically recognize the system language.
 
-- Currently supported languages: see [translations file](translations.ini).
+- Currently supported languages: see [the translation file](translations.ini).
 
 ## 2.Install/Uninstall
 
