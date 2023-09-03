@@ -1,5 +1,15 @@
 #Requires -Version 6
 
+[CmdletBinding()]
+param(
+    [ValidateSet('Folded', 'Unfolded', 'Mini')]
+    [string] $Layout = 'Folded',
+    [ValidateSet('No', 'Yes', 'AdminOnly')]
+    [string] $Extended = 'No',
+    [ValidateSet('Inquiry', 'Stable', 'Preview')]
+    [string] $SelectedEdition = 'Inquiry'
+)
+
 # Generates the launch script.
 function GenerateLaunchScript() {
     Write-Output @"
@@ -20,35 +30,36 @@ End If
 function GetInstallationInfo() {
     Write-Host (Invoke-Expression $translations.LookingForWindowsTerminal)
 
-    $edition = 0
-
-    if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminal))) {
-        # release edition
-        $version = $appx.Version
-        Write-Host (Invoke-Expression $translations.FoundWindowsTerminal)
-        $folder = $appx.InstallLocation
-        $edition = 1
-        $selectVersion = $version
+    # Release edition
+    if ($SelectedEdition -eq 'Inquiry' -or $SelectedEdition -eq 'Stable') {
+        if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminal))) {
+            $version = $appx.Version
+            Write-Host (Invoke-Expression $translations.FoundWindowsTerminal)
+            $folder = $appx.InstallLocation
+            $edition = 1
+            $selectedVersion = $version
+        }
     }
 
-    if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminalPreview))) {
-        # preview edition
-        $version = $appx.Version
-        Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview)
-        if ($edition -eq 0) {
-            $edition = 2
-            $folder = $appx.InstallLocation
-            $selectVersion = $version
-        } else {
-            # Found multiple editions.
-            do {
-                Write-Host (Invoke-Expression $translations.SelectEdition)
-                $edition = Read-Host
-            } while (($edition -eq 1) -or ($edition -eq 2))
-
-            if ($edition -eq 2) {
+    # Preview edition
+    if ($SelectedEdition -eq 'Inquiry' -or $SelectedEdition -eq 'Preview') {
+        if ($null -ne ($appx = (Get-AppxPackage Microsoft.WindowsTerminalPreview))) {
+            $version = $appx.Version
+            Write-Host (Invoke-Expression $translations.FoundWindowsTerminalPreview)
+            if ($edition -eq 0) {
+                $edition = 2
                 $folder = $appx.InstallLocation
-                $selectVersion = $version
+                $selectedVersion = $version
+            } else {
+                do {
+                    Write-Host (Invoke-Expression $translations.SelectEdition)
+                    $edition = Read-Host
+                } while (($edition -eq 1) -or ($edition -eq 2))
+    
+                if ($edition -eq 2) {
+                    $folder = $appx.InstallLocation
+                    $selectedVersion = $version
+                }
             }
         }
     }
@@ -58,7 +69,7 @@ function GetInstallationInfo() {
         Write-Error (Invoke-Expression $translations.NotInstalledWindowsTerminal)
         exit 1
     }
-    elseif ($selectVersion -lt "1.0") {
+    elseif ($selectedVersion -lt "1.0") {
         Write-Warning (Invoke-Expression $translations.WindowsTerminalVersionTooOld)
     }
 
@@ -92,6 +103,24 @@ function GetActiveProfiles() {
 
     # Exclude the disabled profiles and return active profiles.
     return $list | Where-Object { -not $_.hidden } | Where-Object { ($null -eq $_.source) -or -not ($settings.disabledProfileSources -contains $_.source) }
+}
+
+function GetDefaultProfile() {
+    if ($edition -eq 1) {
+        $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    } else {
+        $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+    }
+
+    if (-not (Test-Path $file)) {
+        Write-Error (Invoke-Expression $translations.SettingsNotExist)
+        exit 1
+    }
+
+    # Read and parse settings of Windows Terminal.
+    $settings = Get-Content $file | Out-String | ConvertFrom-Json
+
+    return $settings.defaultProfile
 }
 
 # Converts PNG to ICO.
@@ -174,16 +203,13 @@ function GetProfileIcon([Parameter(Mandatory)]$wtProfile) {
     } else {
         if ($wtProfile.source -eq "Windows.Terminal.Wsl") {
             $iconFile = "$folder\ProfileIcons\{9acb9455-ca41-5af7-950f-6bca1bc9722f}.scale-200.png"
-        }
-        elseif ($wtProfile.source -eq "Git") {
+        } elseif ($wtProfile.source -eq "Git") {
             $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw64\share\git\git-for-windows.ico")
-
             if (-not (Test-Path $gitIcon)) {
                 $gitIcon = Convert-Path ((Get-Command git).Path + "\..\..\mingw32\share\git\git-for-windows.ico")
             }
             $iconFile = $gitIcon
-        }
-        else {
+        } else {
             $iconFile = "$folder\ProfileIcons\$guid.scale-200.png"
         }
     }
@@ -212,87 +238,143 @@ function GetProfileIcon([Parameter(Mandatory)]$wtProfile) {
     }
 }
 
-# Adds a menu subitem of the provided profile.
 function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index) {
     $guid = $wtProfile.guid
     $name = $wtProfile.name
     $icon = GetProfileIcon $wtProfile
+    if ($Layout -ne 'Folded' -or $index -ge 36) {
+        $value = $name
+    } elseif ($index -ge 10) {
+        $value = [char]($index + 65) + ". $name"
+    } else {
+        $value = [char]($index + 48) + ". $name"
+    }
 
     Write-Host (Invoke-Expression $translations.AddingMenuSubitems)
 
-    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu\shell\$index-$guid"
+    if ($Layout -eq 'Folded') {
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu\shell\$index-$guid"
+    } elseif ($Layout -eq 'Unfolded') {
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid"
+    }
     $command = "wscript `"$storage\launch.vbs`" `"%V\.`" $guid"
 
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $name | Out-Null
+    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $value | Out-Null
     New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
     New-Item -Path "$key\command" -Force | Out-Null
     New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 
-    $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated\shell\$index-$guid"
+    if ($Layout -eq 'Folded') {
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated\shell\$index-$guid"
+    } elseif ($Layout -eq 'Unfolded') {
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid"
+    }
     $command = "wscript `"$storage\launch.vbs`" `"%V\.`" $guid -elevated"
 
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $name | Out-Null
+    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $value | Out-Null
     New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
     New-ItemProperty -Path $key -Name "HasLUAShield" -PropertyType String -Value "" | Out-Null
     New-Item -Path "$key\command" -Force | Out-Null
     New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
+
+    if ($Layout -eq 'Unfolded') {
+        Copy-Item "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu-$index-$guid"
+        Copy-Item "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated-$index-$guid"
+
+        Copy-Item "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu-$index-$guid"
+        Copy-Item "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated-$index-$guid"
+
+        Copy-Item "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu-$index-$guid"
+        Copy-Item "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated-$index-$guid"
+    }
 }
 
-# Adds a menu that open Windows Terminal.
 function AddMenu([Parameter(Mandatory)][String]$key, [Parameter(Mandatory)][bool]$elevated) {
     New-Item -Path $key -Force | Out-Null
     New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $terminalIcon | Out-Null
 
+    if ($Layout -eq 'Mini') {
+        $defaultProfile = GetDefaultProfile
+    }
+
     if ($elevated) {
         New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalContextMenuElevated) | Out-Null
-        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalContextMenuElevated" | Out-Null
         New-ItemProperty -Path $key -Name "HasLUAShield" -PropertyType String -Value "" | Out-Null
-    }
-    else {
+        if ($Extended -eq 'Yes' -or $Extended -eq 'AdminOnly') {
+            New-ItemProperty -Path $key -Name "Extended" -PropertyType String -Value "" | Out-Null
+        }
+        if ($Layout -eq 'Folded') {
+            New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalContextMenuElevated" | Out-Null
+        } elseif ($Layout -eq 'Mini') {
+            New-Item -Path "$key\command" -Force | Out-Null
+            New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value "wscript `"$storage\launch.vbs`" `"%V\.`" $defaultProfile" | Out-Null
+        }
+    } else {
         New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value (Invoke-Expression $translations.WindowsTerminalContextMenu) | Out-Null
-        New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalContextMenu" | Out-Null
+        if ($Extended -eq 'Yes') {
+            New-ItemProperty -Path $key -Name "Extended" -PropertyType String -Value "" | Out-Null
+        }
+        if ($Layout -eq 'Folded') {
+            New-ItemProperty -Path $key -Name "ExtendedSubCommandsKey" -PropertyType String -Value "WindowsTerminalContextMenu" | Out-Null
+        } elseif ($Layout -eq 'Mini') {
+            New-Item -Path "$key\command" -Force | Out-Null
+            New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value "wscript `"$storage\launch.vbs`" `"%V\.`" $defaultProfile" | Out-Null
+        }
     }
 }
 
 # Creates all context menus that open Windows Terminal.
 function CreateMenus() {
-    # Directory
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu" $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated" $true
+    if ($Layout -ne 'Unfolded') {        
+        # Directory
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu" $false
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated" $true
 
-    # Directory background
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu" $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated" $true
+        # Directory background
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu" $false
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated" $true
 
-    # Drive
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu" $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated" $true
+        # Drive
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu" $false
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated" $true
 
-    # Library background
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu" $false
-    AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated" $true
+        # Library background
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu" $false
+        AddMenu "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated" $true
+    }
+    if ($Layout -ne 'Mini') {
+        $wtProfiles = GetActiveProfiles
+        for ($index = 0; $index -lt $wtProfiles.Count; ++$index) {
+            AddProfileMenuItem $wtProfiles[$index] $index
+        }
+    }
 }
 
 # Gets translation strings.
 function GetTranslations() {
     $context = Get-Content -Path "$PSScriptRoot\translations.ini" # Read the translation file.
-    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0] # Get the language of the current user.
+    # Get the language of the current user.
+    $language = (Get-ItemProperty 'Registry::HKEY_CURRENT_USER\Control Panel\Desktop' PreferredUILanguages).PreferredUILanguages[0].ToLower()
     $found = $false # Uses to determine if translations corresponding to the system language has been found.
 
     # Parse file contents.
     do {
         for ($index = 0; $index -lt $context.Count; ++ $index) {
             if ($context[$index] -match "^\[.+\]") {
-                if ($context[$index] -ieq "[$language]") {
+                if ($context[$index] -eq "[$language]") {
                     $found = $true
-                }
-                elseif ($found) {
+                } elseif ($found) {
                     return
                 }
-            }
-            elseif ($found -and ($context[$index] -match "^\w+=.*")) {
+            } elseif ($found -and ($context[$index] -match "^\w+=.*")) {
                 # Automatically return as a list.
                 ConvertFrom-StringData -StringData $context[$index]
             }
@@ -300,7 +382,7 @@ function GetTranslations() {
 
         if (-not $found) {
             Write-Warning "There is no translation corresponding to the system language, and the default language is used: English (US)."
-            $language = "en-US"
+            $language = "en-us"
         }
     } while (-not $found)
 }
@@ -309,7 +391,7 @@ $translations = GetTranslations
 
 Write-Host (Invoke-Expression $translations.InstallingWindowsTerminalContextMenu)
 
-$storage = "$env:LocalAppData\WindowsTerminalContextMenu"
+$storage = "$env:LOCALAPPDATA\WindowsTerminalContextMenu"
 if (-not (Test-Path $storage)) {
     New-Item -Path $storage -ItemType Directory | Out-Null
 }
@@ -317,23 +399,21 @@ if (-not (Test-Path $storage)) {
 $info = GetInstallationInfo
 $edition = $info[0]
 $folder = $info[1]
-$wtProfiles = GetActiveProfiles
+
 if ($edition -eq 1) {
     $terminalIcon = "$storage\terminal.ico"   
 } else {
     $terminalIcon = "$storage\terminal-preview.ico"
 }
-
 $tempPng = "$env:TEMP\temp.png"
 [System.Drawing.Icon]::ExtractAssociatedIcon("$folder\WindowsTerminal.exe").ToBitmap().Save($tempPng)
 ConvertToIcon $tempPng $terminalIcon
 Remove-Item $tempPng
 
-CreateMenus
+Write-Output $Layout > "$storage\.layout"
 GenerateLaunchScript
-for ($index = 0; $index -lt $wtProfiles.Count; ++$index) {
-    AddProfileMenuItem $wtProfiles[$index] $index
-}
+
+CreateMenus
 
 Write-Host (Invoke-Expression $translations.InstalledSuccessfully)
 
