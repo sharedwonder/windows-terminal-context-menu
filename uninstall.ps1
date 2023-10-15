@@ -1,34 +1,30 @@
-# Removes a registry key.
-function RemoveKey([Parameter(Mandatory = $true)]$key) {
-    if (Test-Path $key) {
-        Remove-Item -Path $key -Force -Recurse | Out-Null
-    }
-}
-
 # Removes all context menus that open Windows Terminal.
 function RemoveMenus() {
     Write-Host (Invoke-Expression $translations.RemovingMenus)
 
-    $layout = Get-Content "$storage\.layout"
+    $layout = Get-Content "$storage\layout.txt"
 
     if ($layout -eq 'Unfolded') {
-        Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu*" | ForEach-Object { RemoveKey "Registry::" + $_.Name }
-        Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu*" | ForEach-Object { RemoveKey "Registry::" + $_.Name }
-        Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu*" | ForEach-Object { RemoveKey "Registry::" + $_.Name }
+        Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu*" |
+            ForEach-Object { Remove-Item -Path "Registry::" + $_.Name -Force -Recurse -ErrorAction Ignore | Out-Null }
+        Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu*" |
+            ForEach-Object { Remove-Item -Path "Registry::" + $_.Name -Force -Recurse -ErrorAction Ignore | Out-Null }
+        Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu*" |
+            ForEach-Object { Remove-Item -Path "Registry::" + $_.Name -Force -Recurse -ErrorAction Ignore | Out-Null }
         Get-ChildItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu*" | `
-            ForEach-Object { RemoveKey "Registry::" + $_.Name }
+            ForEach-Object { Remove-Item -Path "Registry::" + $_.Name -Force -Recurse -ErrorAction Ignore | Out-Null }
     } else {
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated"
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu" -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated"  -Force -Recurse -ErrorAction Ignore | Out-Null
 
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu"
-        RemoveKey "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated"
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu"  -Force -Recurse -ErrorAction Ignore | Out-Null
+        Remove-Item -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated"  -Force -Recurse -ErrorAction Ignore | Out-Null
     }
 }
 
@@ -74,7 +70,7 @@ $translations = GetTranslations
 
 Write-Host (Invoke-Expression $translations.UninstallingWindowsTerminalContextMenu)
 
-$storage = "$Env:LocalAppData\WindowsTerminalContextMenuContext"
+$storage = "$Env:LocalAppData\WindowsTerminalContextMenu"
 
 RemoveMenus
 RemoveStorage

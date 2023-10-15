@@ -238,7 +238,7 @@ function GetProfileIcon([Parameter(Mandatory)]$wtProfile) {
     }
 }
 
-function AddProfileMenuItem([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index) {
+function AddMenuItemForProfile([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index) {
     $guid = $wtProfile.guid
     $name = $wtProfile.name
     $icon = GetProfileIcon $wtProfile
@@ -353,7 +353,7 @@ function CreateMenus() {
     if ($Layout -ne 'Mini') {
         $wtProfiles = GetActiveProfiles
         for ($index = 0; $index -lt $wtProfiles.Count; ++$index) {
-            AddProfileMenuItem $wtProfiles[$index] $index
+            AddMenuItemForProfile $wtProfiles[$index] $index
         }
     }
 }
@@ -410,7 +410,7 @@ $tempPng = "$env:TEMP\temp.png"
 ConvertToIcon $tempPng $terminalIcon
 Remove-Item $tempPng
 
-Write-Output $Layout > "$storage\.layout"
+Write-Output $Layout > "$storage\layout.txt"
 GenerateLaunchScript
 
 CreateMenus
