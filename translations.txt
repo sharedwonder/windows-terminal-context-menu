@@ -1,0 +1,36 @@
+# English
+:en
+a="&Terminal here"
+b="Terminal here (&Administrator)"
+
+# 简体中文
+=zh-cn;zh-sg
+a="在此处打开终端(&T)"
+b="在此处打开终端（管理员）(&A)"
+
+# 繁體中文
+=zh-hk;zh-mo;zh-tw
+a="在此處打開終端(&T)"
+b="在此處打開終端（管理員）(&A)"
+
+# Note: '*' indicates machine translation, some of which may be incorrect.
+
+# *Deutsch
+:de
+a="Hier &Terminal öffnen"
+b="Hier Terminal öffnen (&Administrator)"
+
+# *Français
+:fr
+a="Ouvrir le &Terminal ici"
+b="Ouvrir le Terminal ici (&Administrateur)"
+
+# *日本語
+:ja
+a="ここでターミナルを開く(&T)"
+b="ここでターミナルを開く（管理者）(&A)"
+
+# *Русский
+:ru
+a="Открыть терминал здесь (&T)"
+b="Открыть терминал здесь (Администратор) (&A)"

@@ -6,11 +6,7 @@ This software is licensed under MIT licence.
 
 ## Introducing
 
-This software can automatically generate and open the right-click menu of Windows Terminal here.
-
-The script can automatically recognize the system language.
-
-- Currently supported languages: see [the translation file](translations.ini).
+This software can automatically generate `Terminal here` right-click menus for Windows Terminal.
 
 ## Install
 
@@ -26,7 +22,7 @@ git clone https://github.com/sharedwonder/windows-terminal-context-menu.git
 
 Then open a PowerShell session and run `install.ps1`.
 
-*If your system does not allow executing unsigned PowerShell scripts, execute the following command to allow the current PowerShell session execute unsignified scripts:*
+*If your system configuration does not allow executing unsigned PowerShell scripts, execute the following command to allow the current PowerShell session execute unsignified scripts:*
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -52,23 +48,17 @@ The parameters used for `install.ps1`:
 - `Yes`: Yes
 - `AdminOnly`: Only the items that run the terminal as administrator
 
-`-SelectedEdition`: Selected version
+`-SelectedEdition`: Specifies the edition
 
-- `Inquiry`: Ask the user (default)
-- `Stable`: Stable version
-- `Preview`: Preview version
+- `Inquiry`: Ask the user when found 2 editions (default)
+- `Stable`: Stable edition
+- `Preview`: Preview edition
+
+`-Language`: Specifies which language to use in the menu, if not specified, the system language will be used
 
 ## Thanks
 
 Special thanks to [lextm](https://github.com/lextm). This project is modified on lextm's [windowsterminal-shell](https://github.com/lextm/windowsterminal-shell).
-
-## Improvements over the windowsterminal-shell
-
-This script supports multiple languages, the language file contains several languages currently, if there is no language that you use, just add it by the language code (if you can, please [submit a pull requset on GitHub](https://github.com/sharedwonder/windows-terminal-context-menu/pulls) for me to add a language or fix incorrect translation).
-
-Functionally, this script sorts the menu items by the order of profiles, supports shortcut keys ('Unfolded' layout is not supported).
-
-And it uses the PowerShell cmdlet to get the installation directory of Windows Terminal directly without the administrator permissions.
 
 ---
 
@@ -78,15 +68,11 @@ And it uses the PowerShell cmdlet to get the installation directory of Windows T
 
 ## 介绍
 
-本软件可在此自动生成在此处打开 Windows Terminal 的右键菜单。
-
-脚本会自动识别系统语言。
-
-- 当前支持的语言：请查看[翻译文件](translations.ini)。
+该软件可以为 Windows 终端自动生成 `在此处打开终端` 的右键菜单。
 
 ## 安装
 
-注意：脚本需要[新的PowerShell](https://github.com/PowerShell/PowerShell) （版本至少为6）。
+注意：脚本需要[新的 PowerShell](https://github.com/PowerShell/PowerShell)（版本至少为 6）。
 
 首先，克隆这个仓库：
 
@@ -98,7 +84,7 @@ git clone https://github.com/sharedwonder/windows-terminal-context-menu.git
 
 然后打开 PowerShell 会话运行 `install.ps1`。
 
-*如果你的系统不允许执行未签名的 PowerShell 脚本，执行以下命令以允许当前 PowerShell 会话执行未签名脚本：*
+*如果你的系统配置不允许执行未签名的 PowerShell 脚本，执行以下命令以允许当前 PowerShell 会话执行未签名脚本：*
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -124,20 +110,14 @@ Set-ExecutionPolicy -Scope Process Bypass
 - `Yes`：是
 - `AdminOnly`：仅以管理员身份运行的条目
 
-`-SelectedEdition`：选定的版本
+`-SelectedEdition`：指定版本
 
-- `Inquiry`：询问用户（默认）
+- `Inquiry`：当找到 2 个版本时询问用户（默认）
 - `Stable`：正式版
 - `Preview`：预览版
+
+`-Language`：指定要在菜单中使用的语言，如果未指定，将使用系统语言
 
 ## 感谢
 
 特别感谢 [lextm](https://github.com/lextm)，此项目修改于 lextm 的 [windowsterminal-shell](https://github.com/lextm/windowsterminal-shell)。
-
-## 相比 windowsterminal-shell 的改进
-
-这个脚本支持用语言文件支持多语言，目前语言文件包含了几种语言，如果没有你使用的语言，只需按语言代码添加即可（如果可以，请[在GitHub上提交拉取请求（pull requset）](https://github.com/sharedwonder/windows-terminal-context-menu/pulls)来让我添加语言或修正错误的翻译）。
-
-功能上，这个脚本会按配置文件的顺序排序菜单项目，并且支持快捷键（Unfloded 布局不支持）。
-
-另外它使用 PowerShell cmdlet 直接获取 Windows Terminal 的安装目录而无需管理员权限。
