@@ -7,7 +7,7 @@ param (
     [string]$Extended = "No",
     [ValidateSet("Inquiry", "Stable", "Preview")]
     [string]$SelectedEdition = "Inquiry",
-    [string]$Language = ""
+    [string]$Language = (Get-Culture).Name
 )
 
 function GenerateLaunchScript() {
@@ -40,9 +40,6 @@ function ExtractTerminalIcon() {
 
 function GetTranslations() {
     $content = Get-Content -Path "$PSScriptRoot\translations.txt"
-    if ($Language -eq "") {
-        $Language = (Get-Culture).Name.ToLower()
-    }
     $found = $false
 
     do {
@@ -51,14 +48,7 @@ function GetTranslations() {
                 if ($found) {
                     return
                 }
-                if ($Language.StartsWith($content[$index].Substring(1))) {
-                    $found = $true
-                }
-            } elseif ($content[$index].StartsWith("=")) {
-                if ($found) {
-                    return
-                }
-                if ($Language -in $content[$index].ToString().Substring(1).Split(";")) {
+                if ($Language -match $content[$index].Substring(1)) {
                     $found = $true
                 }
             } elseif ($found -and ($content[$index] -match "^\w+=.*")) {
@@ -96,7 +86,7 @@ function GetInstallationInfo() {
                 do {
                     $edition = Read-Host "Select edition [1: stable, 2: preview]"
                 } while (($edition -eq 1) -or ($edition -eq 2))
-    
+
                 if ($edition -eq 2) {
                     $installDir = $appx.InstallLocation
                 }
@@ -253,60 +243,68 @@ function GetProfileIcon([Parameter(Mandatory)]$wtProfile) {
 function AddMenuItemForProfile([Parameter(Mandatory)]$wtProfile, [Parameter(Mandatory)]$index) {
     $guid = $wtProfile.guid
     $name = $wtProfile.name
-    
+
     Write-Host "Profile ${guid}: $name"
+
+    $digits = 1
+    for ($x = [math]::Floor($index / 10); $x -ne 0; $x = [math]::Floor($x / 10)) {
+        ++$digits
+    }
+    $prefix = "0" * (10 - $digits) + $index
 
     $icon = GetProfileIcon $wtProfile
     if ($Layout -ne "Folded" -or $index -ge 36) {
-        $value = $name
+        $display = $name
     } elseif ($index -ge 10) {
-        $value = [char]($index + 65) + ". $name"
+        $display = "&" + [char]($index - 10 + 65) + ". $name"
+    } elseif ($index -eq 9) {
+        $display = "&0. $name"
     } else {
-        $value = [char]($index + 48) + ". $name"
+        $display = "&" + [char]($index + 1 + 48) + ". $name"
     }
 
     if ($Layout -eq "Folded") {
-        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu\shell\$index-$guid"
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenu\shell\$prefix-$guid"
     } elseif ($Layout -eq "Unfolded") {
-        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid"
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$prefix-$guid"
     }
     $command = "wscript `"$storage\launch.vbs`" `"%V\.`" $guid"
 
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $value | Out-Null
+    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $display | Out-Null
     New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
     New-Item -Path "$key\command" -Force | Out-Null
     New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 
     if ($Layout -eq "Folded") {
-        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated\shell\$index-$guid"
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\WindowsTerminalContextMenuElevated\shell\$prefix-$guid"
     } elseif ($Layout -eq "Unfolded") {
-        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid"
+        $key = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$prefix-$guid"
     }
     $command = "wscript `"$storage\launch.vbs`" `"%V\.`" $guid -elevated"
 
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $value | Out-Null
+    New-ItemProperty -Path $key -Name "MUIVerb" -PropertyType String -Value $display | Out-Null
     New-ItemProperty -Path $key -Name "Icon" -PropertyType String -Value $icon | Out-Null
     New-ItemProperty -Path $key -Name "HasLUAShield" -PropertyType String -Value "" | Out-Null
     New-Item -Path "$key\command" -Force | Out-Null
     New-ItemProperty -Path "$key\command" -Name "(Default)" -PropertyType String -Value $command | Out-Null
 
     if ($Layout -eq "Unfolded") {
-        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid" `
-            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu-$index-$guid" | Out-Null
-        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid" `
-            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated-$index-$guid" | Out-Null
+        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$prefix-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenu-$prefix-$guid" | Out-Null
+        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$prefix-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\WindowsTerminalContextMenuElevated-$prefix-$guid" | Out-Null
 
-        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid" `
-            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu-$index-$guid" | Out-Null
-        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid" `
-            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated-$index-$guid" | Out-Null
+        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$prefix-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenu-$prefix-$guid" | Out-Null
+        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$prefix-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Drive\shell\WindowsTerminalContextMenuElevated-$prefix-$guid" | Out-Null
 
-        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$index-$guid" `
-            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu-$index-$guid" | Out-Null
-        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$index-$guid" `
-            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated-$index-$guid" | Out-Null
+        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenu-$prefix-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenu-$prefix-$guid" | Out-Null
+        Copy-Item -Force -Recurse "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\WindowsTerminalContextMenuElevated-$prefix-$guid" `
+            "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\LibraryFolder\Background\shell\WindowsTerminalContextMenuElevated-$prefix-$guid" | Out-Null
     }
 }
 
