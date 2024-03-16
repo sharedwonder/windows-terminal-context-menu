@@ -64,7 +64,7 @@ Special thanks to [lextm](https://github.com/lextm). This project is modified on
 
 # Windows Terminal 上下文菜单
 
-此软件根据麻省理工学院许可证（MIT Licence）许可使用。
+此软件以 MIT Licence 许可。
 
 ## 介绍
 
