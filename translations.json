@@ -1,0 +1,67 @@
+{
+    "^de": {
+        "standard": "Hier &Terminal öffnen",
+        "admin": "Hier Terminal öffnen (&Administrator)",
+        "admin-postfix": " (Administrator)"
+    },
+    "^el": {
+        "standard": "Άνοιγμα &τερματικού εδώ",
+        "admin": "Άνοιγμα τερματικού εδώ (&Διαχειριστής)",
+        "admin-postfix": " (Διαχειριστής)"
+    },
+    "^en": {
+        "standard": "&Terminal here",
+        "admin": "Terminal here (&Administrator)",
+        "admin-postfix": " (Administrator)"
+    },
+    "^es": {
+        "standard": "Abrir &Terminal aquí",
+        "admin": "Abrir Terminal aquí (&Administrador)",
+        "admin-postfix": " (Administrador)"
+    },
+    "^fr": {
+        "standard": "Ouvrir le &Terminal ici",
+        "admin": "Ouvrir le Terminal ici (&Administrateur)",
+        "admin-postfix": " (Administrateur)"
+    },
+    "^it": {
+        "standard": "Apri il &Terminal qui",
+        "admin": "Apri il Terminal qui (&Amministratore)",
+        "admin-postfix": " (Amministratore)"
+    },
+    "^ja": {
+        "standard": "ここでターミナルを開く（&T）",
+        "admin": "ここでターミナルを開く（管理者）（&A）",
+        "admin-postfix": "（管理者）"
+    },
+    "^ko": {
+        "standard": "터미널 열기(&T)",
+        "admin": "터미널 열기(관리자)(&A)",
+        "admin-postfix": "(관리자)"
+    },
+    "^nl": {
+        "standard": "&Terminal hier openen",
+        "admin": "Terminal hier openen (&Administrator)",
+        "admin-postfix": " (Administrator)"
+    },
+    "^pt": {
+        "standard": "Abrir &Terminal aqui",
+        "admin": "Abrir Terminal aqui (&Administrador)",
+        "admin-postfix": " (Administrador)"
+    },
+    "^ru": {
+        "standard": "Открыть &терминал здесь",
+        "admin": "Открыть терминал здесь (&Администратор)",
+        "admin-postfix": " (Администратор)"
+    },
+    "^(zh(-hans)?|zh-hans-.+|zh-(cn|sg))": {
+        "standard": "在此处打开终端(&T)",
+        "admin": "在此处打开终端(管理员)(&A)",
+        "admin-postfix": "(管理员)"
+    },
+    "^(zh-hant|zh-hant-.+|zh-(hk|mo|tw))": {
+        "standard": "在此處打開終端(&T)",
+        "admin": "在此處打開終端(管理員)(&A)",
+        "admin-postfix": "(管理員)"
+    }
+}
